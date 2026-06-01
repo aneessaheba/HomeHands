@@ -1,9 +1,565 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* ============================================================
+   DESIGN TOKENS — single source of truth for colors and spacing
+   ============================================================ */
+:root {
+  --accent:    #FF4500;   /* Orange-red: badges, buttons, borders, highlights */
+  --black:     #111111;   /* Primary text and strong UI elements */
+  --white:     #FFFFFF;   /* Page background */
+  --gray-bg:   #F5F5F5;   /* Card and code-block backgrounds */
+  --gray-mid:  #E0E0E0;   /* Dividers, subtle borders */
+  --gray-mute: #777777;   /* Secondary / caption text */
+  --max-w:     1100px;    /* Maximum content width for all sections */
+  --radius:    8px;       /* Shared border-radius for cards */
 }
 
+
+/* ============================================================
+   RESET — remove browser default margin, padding, box model quirks
+   ============================================================ */
+*,                          /* Every element */
+*::before,                  /* And its before pseudo-element */
+*::after {                  /* And its after pseudo-element */
+  box-sizing: border-box;   /* Padding and border included in element width */
+  margin: 0;                /* Remove default margin */
+  padding: 0;               /* Remove default padding */
+}
+
+ul {
+  list-style: none; /* Remove bullet points globally */
+}
+
+a {
+  text-decoration: none; /* Remove underlines from all links */
+  color: inherit;        /* Links inherit surrounding text color */
+}
+
+img {
+  display: block;   /* Removes inline image gap */
+  max-width: 100%;  /* Images never overflow their container */
+}
+
+
+/* ============================================================
+   BASE — typography, background, text color
+   ============================================================ */
 body {
-  font-family: sans-serif;
+  font-family: 'Inter', sans-serif;        /* Inter from Google Fonts */
+  background-color: var(--white);          /* White page background */
+  color: var(--black);                     /* Default text color */
+  line-height: 1.6;                        /* Comfortable reading line height */
+  -webkit-font-smoothing: antialiased;     /* Smoother text on macOS/iOS */
+  -moz-osx-font-smoothing: grayscale;      /* Smoother text on Firefox macOS */
+}
+
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+.navbar {
+  position: sticky;                      /* Sticks to top of viewport on scroll */
+  top: 0;                                /* Sits at the very top */
+  z-index: 100;                          /* Above all page content */
+  background: var(--white);             /* White fill so content scrolls under it */
+  border-bottom: 2px solid var(--accent); /* Orange-red accent line at bottom */
+  display: flex;                         /* Logo left, links right */
+  align-items: center;                   /* Vertically center both sides */
+  justify-content: space-between;        /* Push logo and links to opposite ends */
+  padding: 1rem 2.5rem;                  /* Comfortable vertical and horizontal padding */
+}
+
+.navbar__logo {
+  font-size: 1.2rem;        /* Slightly larger than body text */
+  font-weight: 800;         /* Heavy weight for brand feel */
+  letter-spacing: -0.03em;  /* Tight tracking for a modern logotype look */
+  color: var(--black);      /* Solid black logo */
+}
+
+.navbar__links {
+  display: flex;  /* Horizontal link row */
+  gap: 2.5rem;    /* Generous spacing between links */
+}
+
+.navbar__links a {
+  font-size: 0.875rem;   /* Slightly smaller than body text */
+  font-weight: 500;      /* Medium weight */
+  color: var(--black);   /* Black link text */
+}
+
+.navbar__links a:hover {
+  color: var(--accent); /* Accent color on hover for interactivity cue */
+}
+
+
+/* ============================================================
+   HERO SECTION
+   ============================================================ */
+.hero {
+  text-align: center;          /* Center all hero content */
+  padding: 7rem 2rem 5.5rem;   /* Generous top breathing room, less bottom */
+  max-width: var(--max-w);     /* Cap hero width */
+  margin: 0 auto;              /* Horizontally center the section */
+}
+
+.hero__title {
+  font-size: clamp(3.5rem, 9vw, 6rem); /* Fluid: scales with viewport width */
+  font-weight: 800;                     /* Extra-bold display weight */
+  letter-spacing: -0.05em;             /* Very tight tracking for large headline */
+  color: var(--black);                  /* Solid black */
+  line-height: 1;                       /* Tight line height for single-word title */
+  margin-bottom: 1.5rem;               /* Space before subtitle */
+}
+
+.hero__subtitle {
+  font-size: 1.125rem;       /* Slightly larger than base body */
+  color: #444444;            /* Dark gray, not full black — subordinate to title */
+  max-width: 520px;          /* Narrow column for readability */
+  margin: 0 auto 2.75rem;    /* Center and add bottom gap before buttons */
+  line-height: 1.75;         /* Looser line height for multi-line readability */
+}
+
+.hero__buttons {
+  display: flex;            /* Side-by-side buttons */
+  justify-content: center;  /* Center the button group */
+  gap: 1rem;                /* Gap between the two buttons */
+  margin-bottom: 4rem;      /* Space before stats bar */
+  flex-wrap: wrap;          /* Wrap on very narrow screens */
+}
+
+/* ---- Hero Stats Bar ---- */
+.hero__stats {
+  display: flex;                      /* Horizontal stat cells */
+  justify-content: center;            /* Center the whole bar */
+  align-items: stretch;              /* All cells same height */
+  max-width: 520px;                   /* Constrain bar width */
+  margin: 0 auto;                     /* Horizontally center the bar */
+  border: 1px solid var(--gray-mid); /* Thin border around the full bar */
+  border-radius: var(--radius);      /* Rounded corners */
+  overflow: hidden;                   /* Border-radius clips children */
+}
+
+.stat {
+  flex: 1;                  /* Each stat takes equal width */
+  padding: 1.1rem 0.5rem;   /* Vertical and horizontal padding per cell */
+  display: flex;             /* Stack number above label */
+  flex-direction: column;   /* Vertical stack */
+  align-items: center;      /* Center horizontally in cell */
+  gap: 0.2rem;              /* Tight gap between number and label */
+}
+
+.stat__number {
+  font-size: 1.6rem;       /* Large bold number */
+  font-weight: 800;         /* Extra-bold */
+  color: var(--accent);    /* Orange-red numbers for visual pop */
+  line-height: 1;           /* No extra line-height needed */
+}
+
+.stat__label {
+  font-size: 0.7rem;              /* Very small label */
+  font-weight: 600;               /* Semi-bold */
+  color: var(--gray-mute);        /* Muted gray */
+  text-transform: uppercase;      /* ALL CAPS for label styling */
+  letter-spacing: 0.07em;         /* Spaced-out caps */
+}
+
+.stat__divider {
+  width: 1px;                       /* 1px vertical rule */
+  background: var(--gray-mid);     /* Light gray divider */
+  align-self: stretch;             /* Full height of the stat bar */
+}
+
+
+/* ============================================================
+   BUTTONS — shared base + filled and outlined variants
+   ============================================================ */
+.btn {
+  display: inline-block;          /* Behaves like a block but sits inline */
+  padding: 0.8rem 1.85rem;        /* Comfortable click target */
+  font-family: 'Inter', sans-serif; /* Override any inherited font */
+  font-size: 0.9rem;              /* Slightly smaller than body */
+  font-weight: 600;               /* Semi-bold label */
+  border-radius: 6px;             /* Softly rounded corners */
+  border: 2px solid transparent; /* Reserve border space for consistency */
+  cursor: pointer;                /* Pointer cursor for all button-like links */
+  letter-spacing: 0.01em;         /* Slight tracking on labels */
+  transition: background 0.15s, color 0.15s, border-color 0.15s; /* Smooth state change */
+}
+
+.btn--filled {
+  background: var(--accent);  /* Solid orange-red fill */
+  color: var(--white);        /* White label on orange-red */
+  border-color: var(--accent); /* Border matches fill so hover works cleanly */
+}
+
+.btn--filled:hover {
+  background: #e03d00;     /* Slightly darker on hover */
+  border-color: #e03d00;   /* Keep border in sync */
+}
+
+.btn--outlined {
+  background: transparent;  /* Transparent fill */
+  color: var(--black);      /* Black label */
+  border-color: var(--black); /* Black border outline */
+}
+
+.btn--outlined:hover {
+  background: var(--black); /* Fill black on hover */
+  color: var(--white);      /* White label on black fill */
+}
+
+
+/* ============================================================
+   SECTION SHELL — shared spacing for main content sections
+   ============================================================ */
+.section {
+  padding: 5.5rem 2.5rem;       /* Generous vertical breathing room */
+  max-width: var(--max-w);      /* Constrain content width */
+  margin: 0 auto;               /* Center section horizontally */
+}
+
+.section__title {
+  font-size: 2rem;              /* Section heading size */
+  font-weight: 800;             /* Bold heading */
+  letter-spacing: -0.03em;     /* Tight tracking */
+  margin-bottom: 0.5rem;       /* Small gap to subtitle */
+}
+
+.section__subtitle {
+  font-size: 1rem;             /* Normal body size */
+  color: #555555;              /* Medium gray — secondary text */
+  margin-bottom: 3rem;         /* Space before section content */
+}
+
+/* Download section is centered, unlike the rest */
+.section--download {
+  text-align: center; /* Center text and children */
+}
+
+
+/* ============================================================
+   BADGE — orange-red pill label for card tagging
+   ============================================================ */
+.badge {
+  display: inline-block;          /* Shrinks to content size */
+  background: var(--accent);      /* Orange-red background */
+  color: var(--white);            /* White text on orange-red */
+  font-size: 0.68rem;             /* Very small type */
+  font-weight: 700;               /* Bold */
+  letter-spacing: 0.1em;         /* Wide-spaced all-caps text */
+  text-transform: uppercase;      /* Force uppercase */
+  padding: 0.3rem 0.75rem;        /* Comfortable horizontal padding */
+  border-radius: 4px;             /* Slightly rounded pill */
+  margin-bottom: 1.5rem;          /* Space before card content */
+}
+
+
+/* ============================================================
+   DATASET CARD — large gray card, two-column inner layout
+   ============================================================ */
+.dataset-card {
+  background: var(--gray-bg);    /* Light gray background distinguishes card */
+  border-radius: 12px;           /* Rounded card corners */
+  padding: 2.75rem;              /* Internal whitespace */
+}
+
+.dataset-card__inner {
+  display: grid;                              /* CSS Grid for two columns */
+  grid-template-columns: 1fr 1.1fr;          /* Right column slightly wider for images */
+  gap: 3rem;                                  /* Generous gutter between columns */
+  align-items: start;                         /* Align both columns to their tops */
+}
+
+.dataset-card__name {
+  font-size: 1.5rem;        /* Card-level heading */
+  font-weight: 700;         /* Bold */
+  letter-spacing: -0.025em; /* Tight tracking */
+  margin-bottom: 0.85rem;   /* Space before description */
+}
+
+.dataset-card__desc {
+  font-size: 0.95rem;    /* Slightly smaller than body */
+  color: #444444;        /* Dark gray for body text */
+  line-height: 1.75;     /* Loose for readability */
+  margin-bottom: 2rem;   /* Space before stats grid */
+}
+
+/* ---- Stats Mini-Grid (3 columns × 2 rows) ---- */
+.stats-grid {
+  display: grid;                          /* Grid for even alignment */
+  grid-template-columns: repeat(3, 1fr); /* Three equal columns */
+  gap: 1.1rem 1.5rem;                    /* Row gap / column gap */
+}
+
+.stats-grid__item {
+  display: flex;            /* Stack value above key */
+  flex-direction: column;  /* Vertical stack */
+  gap: 0.15rem;             /* Tight gap */
+}
+
+.stats-grid__value {
+  font-size: 1.35rem;      /* Big readable number */
+  font-weight: 800;         /* Extra-bold */
+  color: var(--accent);    /* Orange-red numbers */
+  line-height: 1;           /* No extra gap */
+}
+
+.stats-grid__key {
+  font-size: 0.72rem;        /* Very small label */
+  font-weight: 500;          /* Medium */
+  color: var(--gray-mute);  /* Muted gray */
+}
+
+/* ---- Frame Image Grid (3 columns) ---- */
+.dataset-card__right {
+  display: grid;                          /* Grid for frame thumbnails */
+  grid-template-columns: repeat(3, 1fr); /* Three per row */
+  gap: 0.75rem;                           /* Gap between frames */
+}
+
+.frame-item {
+  display: flex;            /* Stack image above caption */
+  flex-direction: column;  /* Vertical stack */
+  gap: 0.35rem;             /* Gap between image and label */
+}
+
+.frame-item__img {
+  width: 100%;              /* Fill grid column width */
+  aspect-ratio: 4 / 3;     /* Consistent image proportion */
+  object-fit: cover;        /* Crop to fill aspect ratio cleanly */
+  border-radius: 4px;       /* Softly rounded corners */
+  border: 1px solid var(--gray-mid); /* Thin border to frame the image */
+}
+
+.frame-item__label {
+  font-size: 0.68rem;       /* Very small caption */
+  font-weight: 500;          /* Medium weight */
+  color: var(--gray-mute);  /* Muted gray caption */
+  text-align: center;        /* Center below the image */
+}
+
+/* "View All →" — fills the 6th grid slot */
+.frame-item--more {
+  border: 1px dashed var(--gray-mid); /* Dashed border signals an action */
+  border-radius: 4px;                  /* Match image corner radius */
+  display: flex;                        /* Center the text */
+  align-items: center;                 /* Vertical center */
+  justify-content: center;             /* Horizontal center */
+  aspect-ratio: 4 / 3;               /* Same proportion as images */
+  color: var(--accent);               /* Accent color text */
+  font-size: 0.8rem;                   /* Small label */
+  font-weight: 600;                    /* Semi-bold */
+}
+
+.frame-item--more:hover {
+  background: #fff3ee;      /* Very faint orange tint on hover */
+  border-color: var(--accent); /* Accent border on hover */
+}
+
+
+/* ============================================================
+   MODALITY CARDS — three cards in a horizontal row
+   ============================================================ */
+.modality-row {
+  display: grid;                          /* Side-by-side cards */
+  grid-template-columns: repeat(3, 1fr); /* Three equal-width columns */
+  gap: 1.5rem;                            /* Gap between cards */
+}
+
+.modality-card {
+  border: 1px solid var(--black);  /* Thin solid black border around card */
+  border-radius: var(--radius);    /* Rounded corners */
+  overflow: hidden;                 /* Top accent strip respects border-radius */
+  background: var(--white);        /* White card background */
+}
+
+.modality-card__accent {
+  height: 4px;              /* Thin colored strip at top of each card */
+  background: var(--accent); /* Orange-red top accent */
+}
+
+.modality-card__content {
+  padding: 1.75rem; /* Internal padding for card content */
+}
+
+.modality-card__icon {
+  font-size: 2rem;    /* Large icon size */
+  display: block;     /* Sits on its own line */
+  margin-bottom: 0.8rem; /* Space before card title */
+}
+
+.modality-card__title {
+  font-size: 1.1rem;    /* Card-level heading */
+  font-weight: 700;      /* Bold */
+  margin-bottom: 0.5rem; /* Space before description */
+}
+
+.modality-card__desc {
+  font-size: 0.875rem;  /* Smaller than body */
+  color: #555555;       /* Medium gray */
+  line-height: 1.65;    /* Comfortable multi-line reading */
+  margin-bottom: 1.4rem; /* Space before stat rows */
+}
+
+.modality-card__stats {
+  display: flex;          /* Stack stat rows vertically */
+  flex-direction: column; /* Vertical */
+  gap: 0;                 /* No gap — borders act as dividers */
+}
+
+.modality-card__stats li {
+  display: flex;                              /* Key on left, value on right */
+  justify-content: space-between;             /* Push them to opposite ends */
+  font-size: 0.8rem;                          /* Small stat text */
+  color: #444444;                             /* Dark gray */
+  border-bottom: 1px solid var(--gray-mid);  /* Divider between rows */
+  padding: 0.45rem 0;                        /* Vertical padding per row */
+}
+
+.modality-card__stats li:last-child {
+  border-bottom: none; /* Remove divider after the last stat row */
+}
+
+.modality-card__stats strong {
+  font-weight: 600;    /* Semi-bold value text */
+  color: var(--black); /* Full black for value */
+}
+
+
+/* ============================================================
+   DOWNLOAD SECTION — centered buttons + code snippet
+   ============================================================ */
+.download-buttons {
+  display: flex;            /* Side-by-side download buttons */
+  justify-content: center;  /* Center the group */
+  gap: 1rem;                /* Gap between buttons */
+  flex-wrap: wrap;          /* Wrap on narrow screens */
+  margin-bottom: 3rem;      /* Space before code block */
+}
+
+/* ---- Code Block ---- */
+.code-block {
+  max-width: 660px;                    /* Constrain code block width */
+  margin: 0 auto;                      /* Horizontally center below buttons */
+  border: 1px solid var(--gray-mid); /* Outer border around block */
+  border-radius: var(--radius);       /* Rounded corners */
+  overflow: hidden;                    /* Clips header and pre to border-radius */
+  text-align: left;                    /* Code is left-aligned inside centered section */
+}
+
+.code-block__header {
+  background: var(--gray-bg);          /* Light gray header bar */
+  border-bottom: 1px solid var(--gray-mid); /* Separator between header and code */
+  padding: 0.6rem 1rem;                /* Header padding */
+  display: flex;                        /* Language label left, copy button right */
+  justify-content: space-between;       /* Push them apart */
+  align-items: center;                  /* Vertically center both */
+}
+
+.code-block__lang {
+  font-size: 0.72rem;          /* Small label */
+  font-weight: 700;             /* Bold */
+  letter-spacing: 0.08em;      /* Wide-spaced */
+  text-transform: uppercase;   /* ALL CAPS */
+  color: var(--gray-mute);     /* Muted gray */
+}
+
+.code-block__copy {
+  font-family: 'Inter', sans-serif; /* Match page font */
+  font-size: 0.72rem;               /* Small button label */
+  font-weight: 600;                  /* Semi-bold */
+  color: var(--accent);             /* Orange-red text */
+  background: transparent;          /* No fill */
+  border: 1px solid var(--accent);  /* Orange-red border */
+  border-radius: 4px;               /* Rounded corners */
+  padding: 0.2rem 0.65rem;          /* Small padding */
+  cursor: pointer;                   /* Pointer cursor */
+  transition: background 0.15s, color 0.15s; /* Smooth hover */
+}
+
+.code-block__copy:hover {
+  background: var(--accent); /* Fill orange-red on hover */
+  color: var(--white);       /* White text on fill */
+}
+
+.code-block__pre {
+  background: var(--white);              /* White code background */
+  padding: 1.4rem 1.25rem;              /* Inner padding around code */
+  overflow-x: auto;                      /* Horizontal scroll if code is long */
+  font-family: 'Courier New', monospace; /* Monospace font for code */
+  font-size: 0.82rem;                    /* Slightly smaller than body */
+  line-height: 1.75;                     /* Loose line height for code readability */
+  color: var(--black);                   /* Black code text */
+  tab-size: 4;                           /* 4-space tabs */
+}
+
+
+/* ============================================================
+   FOOTER — black bar, tagline left, links right
+   ============================================================ */
+.footer {
+  background: var(--black);     /* Solid black footer */
+  color: var(--white);          /* White text */
+  padding: 1.5rem 2.5rem;       /* Comfortable padding */
+  display: flex;                 /* Tagline left, links right */
+  justify-content: space-between; /* Push them to opposite ends */
+  align-items: center;           /* Vertically center */
+}
+
+.footer__text {
+  font-size: 0.875rem;  /* Small print */
+  color: #AAAAAA;       /* Muted light gray on black */
+}
+
+.footer__links {
+  display: flex;  /* Side-by-side links */
+  gap: 1.75rem;   /* Gap between footer links */
+}
+
+.footer__link {
+  font-size: 0.875rem;  /* Match tagline text size */
+  font-weight: 500;      /* Medium weight */
+  color: #AAAAAA;        /* Muted gray to start */
+}
+
+.footer__link:hover {
+  color: var(--accent); /* Accent color highlight on hover */
+}
+
+
+/* ============================================================
+   RESPONSIVE — tablet and mobile adjustments
+   ============================================================ */
+@media (max-width: 860px) {
+  /* Stack dataset card columns vertically on smaller screens */
+  .dataset-card__inner {
+    grid-template-columns: 1fr; /* Single column */
+  }
+
+  /* Stack modality cards vertically */
+  .modality-row {
+    grid-template-columns: 1fr; /* Single column */
+  }
+}
+
+@media (max-width: 560px) {
+  /* Tighten navbar on very small screens */
+  .navbar {
+    padding: 1rem 1.25rem; /* Reduce horizontal padding */
+  }
+
+  /* Stack nav links if they don't fit */
+  .navbar__links {
+    gap: 1.25rem; /* Reduce gap between links */
+  }
+
+  /* Stack footer vertically */
+  .footer {
+    flex-direction: column; /* Stack text above links */
+    gap: 0.75rem;            /* Gap between rows */
+    text-align: center;      /* Center both */
+  }
+
+  /* Tighter section padding on mobile */
+  .section {
+    padding: 3.5rem 1.25rem; /* Reduce padding */
+  }
 }
