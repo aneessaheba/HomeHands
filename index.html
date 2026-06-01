@@ -214,62 +214,130 @@
        ═══════════════════════════════════════════════════════ -->
   <section class="section" id="modalities">
 
-    <h2 class="section__title">Modalities</h2>  <!-- Section heading -->
-    <p class="section__subtitle">Three synchronized data streams per recording session</p>
+    <!-- Section title with orange-red left border (matches Core Dataset) -->
+    <h2 class="section__title section__title--accent">Modalities</h2>
+    <p class="section__subtitle">Three synchronized data streams captured per recording session</p>
 
-    <!-- Flex row of three modality cards -->
-    <div class="modality-row">
+    <!-- Three-card horizontal grid -->
+    <div class="mod-row">
 
-      <!-- CARD 1: RGB Videos -->
-      <div class="modality-card">
-        <div class="modality-card__accent"></div>   <!-- Orange-red top border strip -->
-        <div class="modality-card__content">
-          <span class="modality-card__icon">&#127909;</span> <!-- Camera icon -->
-          <h3 class="modality-card__title">RGB Videos</h3>
-          <p class="modality-card__desc">Full-color egocentric video at 30 FPS captured at 1080p resolution.</p>
-          <!-- Key-value stat rows -->
-          <ul class="modality-card__stats">
-            <li><span>Format</span>     <strong>MP4 / H.264</strong></li>
-            <li><span>Resolution</span> <strong>1920 × 1080</strong></li>
-            <li><span>Frame Rate</span> <strong>30 FPS</strong></li>
-            <li><span>Duration</span>   <strong>2 – 5 min / clip</strong></li>
+      <!-- ── CARD 1: RGB Videos ─────────────────────────── -->
+      <div class="mod-card">
+        <div class="mod-card__border"></div>     <!-- 3px orange-red top strip -->
+        <div class="mod-card__body">
+          <span class="mod-card__icon">📹</span>  <!-- Camera emoji icon -->
+          <h3 class="mod-card__title">RGB Videos</h3>
+          <p class="mod-card__desc">
+            Raw first-person egocentric footage of household tasks at 30fps
+          </p>
+          <!-- Key / value stat rows -->
+          <ul class="mod-stats">
+            <li>
+              <span class="mod-stat__key">Videos</span>      <!-- Stat label left -->
+              <strong class="mod-stat__val">10</strong>       <!-- Stat value right -->
+            </li>
+            <li>
+              <span class="mod-stat__key">FPS</span>
+              <strong class="mod-stat__val">30</strong>
+            </li>
+            <li>
+              <span class="mod-stat__key">Resolution</span>
+              <strong class="mod-stat__val">478 × 850</strong>
+            </li>
+            <li>
+              <span class="mod-stat__key">Format</span>
+              <strong class="mod-stat__val">MP4</strong>
+            </li>
           </ul>
         </div>
       </div>
 
-      <!-- CARD 2: Hand Pose -->
-      <div class="modality-card">
-        <div class="modality-card__accent"></div>
-        <div class="modality-card__content">
-          <span class="modality-card__icon">&#9995;</span>   <!-- Hand icon -->
-          <h3 class="modality-card__title">Hand Pose</h3>
-          <p class="modality-card__desc">Per-frame 2D hand keypoint annotations extracted via MediaPipe Hands.</p>
-          <ul class="modality-card__stats">
-            <li><span>Keypoints</span>  <strong>21 per hand</strong></li>
-            <li><span>Format</span>     <strong>JSON</strong></li>
-            <li><span>Hands</span>      <strong>Left + Right</strong></li>
-            <li><span>Confidence</span> <strong>Score included</strong></li>
+      <!-- ── CARD 2: Hand Pose ──────────────────────────── -->
+      <div class="mod-card">
+        <div class="mod-card__border"></div>
+        <div class="mod-card__body">
+          <span class="mod-card__icon">✋</span>  <!-- Hand emoji icon -->
+          <h3 class="mod-card__title">Hand Pose</h3>
+          <p class="mod-card__desc">
+            21 keypoint skeleton tracking per hand using MediaPipe Hand Landmarker
+          </p>
+          <ul class="mod-stats">
+            <li>
+              <span class="mod-stat__key">Keypoints</span>
+              <strong class="mod-stat__val">21</strong>
+            </li>
+            <li>
+              <span class="mod-stat__key">Hands</span>
+              <strong class="mod-stat__val">2</strong>
+            </li>
+            <li>
+              <span class="mod-stat__key">Detection Rate</span>
+              <strong class="mod-stat__val">100%</strong>
+            </li>
+            <li>
+              <span class="mod-stat__key">Format</span>
+              <strong class="mod-stat__val">JSON</strong>
+            </li>
           </ul>
         </div>
       </div>
 
-      <!-- CARD 3: Segmentation -->
-      <div class="modality-card">
-        <div class="modality-card__accent"></div>
-        <div class="modality-card__content">
-          <span class="modality-card__icon">&#127912;</span> <!-- Palette icon -->
-          <h3 class="modality-card__title">Segmentation</h3>
-          <p class="modality-card__desc">Pixel-level semantic segmentation masks aligned to every RGB frame.</p>
-          <ul class="modality-card__stats">
-            <li><span>Type</span>     <strong>Semantic</strong></li>
-            <li><span>Format</span>   <strong>PNG masks</strong></li>
-            <li><span>Classes</span>  <strong>10 task classes</strong></li>
-            <li><span>Coverage</span> <strong>Full frame</strong></li>
+      <!-- ── CARD 3: Segmentation ───────────────────────── -->
+      <div class="mod-card">
+        <div class="mod-card__border"></div>
+        <div class="mod-card__body">
+          <span class="mod-card__icon">🎨</span>  <!-- Palette emoji icon -->
+          <h3 class="mod-card__title">Segmentation</h3>
+          <p class="mod-card__desc">
+            Semantic segmentation with 4 classes using HSV thresholding and MediaPipe
+          </p>
+          <ul class="mod-stats">
+            <li>
+              <span class="mod-stat__key">Classes</span>
+              <strong class="mod-stat__val">4</strong>
+            </li>
+            <li>
+              <span class="mod-stat__key">Masks</span>
+              <strong class="mod-stat__val">516</strong>
+            </li>
+            <li>
+              <span class="mod-stat__key">Granularity</span>
+              <strong class="mod-stat__val">Pixel Level</strong>
+            </li>
+            <li>
+              <span class="mod-stat__key">Format</span>
+              <strong class="mod-stat__val">PNG</strong>
+            </li>
           </ul>
         </div>
       </div>
 
-    </div>
+    </div><!-- /mod-row -->
+
+    <!-- Segmentation class color legend — one row, emoji + label per class -->
+    <div class="seg-legend">
+      <!-- Blue: background class -->
+      <span class="seg-legend__item">
+        <span class="seg-legend__emoji">🔵</span>
+        <span class="seg-legend__label">Background</span>
+      </span>
+      <!-- Green: clothing class -->
+      <span class="seg-legend__item">
+        <span class="seg-legend__emoji">🟢</span>
+        <span class="seg-legend__label">Clothing</span>
+      </span>
+      <!-- Red: left hand class -->
+      <span class="seg-legend__item">
+        <span class="seg-legend__emoji">🔴</span>
+        <span class="seg-legend__label">Left Hand</span>
+      </span>
+      <!-- Purple: right hand class -->
+      <span class="seg-legend__item">
+        <span class="seg-legend__emoji">🟣</span>
+        <span class="seg-legend__label">Right Hand</span>
+      </span>
+    </div><!-- /seg-legend -->
+
   </section>
 
 
