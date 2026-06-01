@@ -1,13 +1,307 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"> <!-- Language declared for accessibility and SEO -->
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HomeHands</title>
+  <meta charset="UTF-8" />                          <!-- UTF-8 character encoding -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- Responsive viewport -->
+  <title>HomeHands — Egocentric Household Dataset</title> <!-- Browser tab title -->
+
+  <!-- Google Fonts: Inter — clean, modern, variable weight -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Main stylesheet -->
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <h1>HomeHands</h1>
+
+  <!-- ═══════════════════════════════════════════════════════
+       NAVBAR — sticky top bar with logo, nav links, accent border
+       ═══════════════════════════════════════════════════════ -->
+  <nav class="navbar">
+    <!-- Logo: bold black text, left side -->
+    <span class="navbar__logo">HomeHands</span>
+
+    <!-- Navigation links: right side, scroll to section anchors -->
+    <ul class="navbar__links">
+      <li><a href="#dataset">Dataset</a></li>       <!-- Jump to core dataset card -->
+      <li><a href="#modalities">Modalities</a></li> <!-- Jump to modality cards -->
+      <li><a href="#download">Download</a></li>     <!-- Jump to download section -->
+    </ul>
+  </nav>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       HERO — large title, subtitle, two CTAs, stats bar
+       ═══════════════════════════════════════════════════════ -->
+  <section class="hero" id="hero">
+
+    <!-- Main display title -->
+    <h1 class="hero__title">HomeHands</h1>
+
+    <!-- One-sentence dataset description -->
+    <p class="hero__subtitle">
+      An egocentric dataset of household activities<br />
+      with hand pose and semantic segmentation
+    </p>
+
+    <!-- Call-to-action button row -->
+    <div class="hero__buttons">
+      <!-- Primary CTA: filled orange-red -->
+      <a href="#dataset" class="btn btn--filled">Explore Dataset</a>
+      <!-- Secondary CTA: outlined black, opens GitHub in new tab -->
+      <a href="https://github.com/aneessaheba/HomeHands" target="_blank" rel="noopener" class="btn btn--outlined">GitHub</a>
+    </div>
+
+    <!-- Quick-stats bar: four numbers separated by vertical dividers -->
+    <div class="hero__stats">
+      <div class="stat">
+        <span class="stat__number">10</span>      <!-- Number highlight -->
+        <span class="stat__label">Videos</span>   <!-- Metric label -->
+      </div>
+      <div class="stat__divider"></div>            <!-- Vertical rule -->
+      <div class="stat">
+        <span class="stat__number">21</span>
+        <span class="stat__label">Keypoints</span>
+      </div>
+      <div class="stat__divider"></div>
+      <div class="stat">
+        <span class="stat__number">3</span>
+        <span class="stat__label">Modalities</span>
+      </div>
+      <div class="stat__divider"></div>
+      <div class="stat">
+        <span class="stat__number">10</span>
+        <span class="stat__label">Tasks</span>
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       CORE DATASET CARD — gray card, info left, frames right
+       ═══════════════════════════════════════════════════════ -->
+  <section class="section" id="dataset">
+
+    <div class="dataset-card">
+
+      <!-- Orange-red "CORE DATA" badge, top-left of card -->
+      <span class="badge">CORE DATA</span>
+
+      <!-- Two-column layout: left = text/stats, right = image grid -->
+      <div class="dataset-card__inner">
+
+        <!-- LEFT COLUMN: description and stats grid -->
+        <div class="dataset-card__left">
+          <h2 class="dataset-card__name">HomeHands Dataset</h2> <!-- Dataset title -->
+
+          <!-- Short prose description -->
+          <p class="dataset-card__desc">
+            Egocentric video recordings of everyday household tasks captured
+            from a head-mounted camera. Includes RGB frames, 21-keypoint hand
+            pose annotations per frame, and pixel-level semantic segmentation
+            masks aligned to each recording.
+          </p>
+
+          <!-- 3×2 mini stats grid: six key numbers at a glance -->
+          <div class="stats-grid">
+            <div class="stats-grid__item">
+              <span class="stats-grid__value">10</span>          <!-- Count -->
+              <span class="stats-grid__key">Videos</span>        <!-- Label -->
+            </div>
+            <div class="stats-grid__item">
+              <span class="stats-grid__value">~5K</span>
+              <span class="stats-grid__key">Frames</span>
+            </div>
+            <div class="stats-grid__item">
+              <span class="stats-grid__value">21</span>
+              <span class="stats-grid__key">Keypoints / Hand</span>
+            </div>
+            <div class="stats-grid__item">
+              <span class="stats-grid__value">10</span>
+              <span class="stats-grid__key">Task Classes</span>
+            </div>
+            <div class="stats-grid__item">
+              <span class="stats-grid__value">30</span>
+              <span class="stats-grid__key">FPS</span>
+            </div>
+            <div class="stats-grid__item">
+              <span class="stats-grid__value">1080p</span>
+              <span class="stats-grid__key">Resolution</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: 3×2 grid of semantic frame samples -->
+        <div class="dataset-card__right">
+
+          <!-- Frame 100 -->
+          <figure class="frame-item">
+            <img src="assets/frames/frame_000100.png" alt="Semantic frame 100" class="frame-item__img" />
+            <figcaption class="frame-item__label">Frame #100</figcaption>
+          </figure>
+
+          <!-- Frame 200 -->
+          <figure class="frame-item">
+            <img src="assets/frames/frame_000200.png" alt="Semantic frame 200" class="frame-item__img" />
+            <figcaption class="frame-item__label">Frame #200</figcaption>
+          </figure>
+
+          <!-- Frame 300 -->
+          <figure class="frame-item">
+            <img src="assets/frames/frame_000300.png" alt="Semantic frame 300" class="frame-item__img" />
+            <figcaption class="frame-item__label">Frame #300</figcaption>
+          </figure>
+
+          <!-- Frame 400 -->
+          <figure class="frame-item">
+            <img src="assets/frames/frame_000400.png" alt="Semantic frame 400" class="frame-item__img" />
+            <figcaption class="frame-item__label">Frame #400</figcaption>
+          </figure>
+
+          <!-- Frame 500 -->
+          <figure class="frame-item">
+            <img src="assets/frames/frame_000500.png" alt="Semantic frame 500" class="frame-item__img" />
+            <figcaption class="frame-item__label">Frame #500</figcaption>
+          </figure>
+
+          <!-- View-all link fills the 6th grid slot -->
+          <a href="#download" class="frame-item frame-item--more">
+            <span class="frame-item__more-text">View All →</span>
+          </a>
+
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       MODALITIES — three cards in a row, one per data stream
+       ═══════════════════════════════════════════════════════ -->
+  <section class="section" id="modalities">
+
+    <h2 class="section__title">Modalities</h2>  <!-- Section heading -->
+    <p class="section__subtitle">Three synchronized data streams per recording session</p>
+
+    <!-- Flex row of three modality cards -->
+    <div class="modality-row">
+
+      <!-- CARD 1: RGB Videos -->
+      <div class="modality-card">
+        <div class="modality-card__accent"></div>   <!-- Orange-red top border strip -->
+        <div class="modality-card__content">
+          <span class="modality-card__icon">&#127909;</span> <!-- Camera icon -->
+          <h3 class="modality-card__title">RGB Videos</h3>
+          <p class="modality-card__desc">Full-color egocentric video at 30 FPS captured at 1080p resolution.</p>
+          <!-- Key-value stat rows -->
+          <ul class="modality-card__stats">
+            <li><span>Format</span>     <strong>MP4 / H.264</strong></li>
+            <li><span>Resolution</span> <strong>1920 × 1080</strong></li>
+            <li><span>Frame Rate</span> <strong>30 FPS</strong></li>
+            <li><span>Duration</span>   <strong>2 – 5 min / clip</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- CARD 2: Hand Pose -->
+      <div class="modality-card">
+        <div class="modality-card__accent"></div>
+        <div class="modality-card__content">
+          <span class="modality-card__icon">&#9995;</span>   <!-- Hand icon -->
+          <h3 class="modality-card__title">Hand Pose</h3>
+          <p class="modality-card__desc">Per-frame 2D hand keypoint annotations extracted via MediaPipe Hands.</p>
+          <ul class="modality-card__stats">
+            <li><span>Keypoints</span>  <strong>21 per hand</strong></li>
+            <li><span>Format</span>     <strong>JSON</strong></li>
+            <li><span>Hands</span>      <strong>Left + Right</strong></li>
+            <li><span>Confidence</span> <strong>Score included</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- CARD 3: Segmentation -->
+      <div class="modality-card">
+        <div class="modality-card__accent"></div>
+        <div class="modality-card__content">
+          <span class="modality-card__icon">&#127912;</span> <!-- Palette icon -->
+          <h3 class="modality-card__title">Segmentation</h3>
+          <p class="modality-card__desc">Pixel-level semantic segmentation masks aligned to every RGB frame.</p>
+          <ul class="modality-card__stats">
+            <li><span>Type</span>     <strong>Semantic</strong></li>
+            <li><span>Format</span>   <strong>PNG masks</strong></li>
+            <li><span>Classes</span>  <strong>10 task classes</strong></li>
+            <li><span>Coverage</span> <strong>Full frame</strong></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       DOWNLOAD — centered section, buttons, Python snippet
+       ═══════════════════════════════════════════════════════ -->
+  <section class="section section--download" id="download">
+
+    <h2 class="section__title">Download HomeHands</h2>
+    <p class="section__subtitle">Access annotations, segmentation masks, and raw video clips</p>
+
+    <!-- Three download action buttons side by side -->
+    <div class="download-buttons">
+      <!-- Direct download link for the annotations JSON -->
+      <a href="assets/data/annotations.json" download class="btn btn--filled">Annotations JSON</a>
+      <!-- Placeholders for future dataset zips -->
+      <a href="#" class="btn btn--outlined">Full Dataset (soon)</a>
+      <a href="#" class="btn btn--outlined">Segmentation Masks</a>
+    </div>
+
+    <!-- Python code snippet for loading annotations -->
+    <div class="code-block">
+      <!-- Header bar: language label + copy button -->
+      <div class="code-block__header">
+        <span class="code-block__lang">Python</span>
+        <!-- Copy button calls copyCode() in main.js -->
+        <button class="code-block__copy" onclick="copyCode()">Copy</button>
+      </div>
+
+      <!-- The actual code, preserved whitespace -->
+      <pre class="code-block__pre"><code id="code-snippet">import json
+
+# Load the HomeHands annotation file
+with open('assets/data/annotations.json', 'r') as f:
+    data = json.load(f)
+
+# Iterate over annotated frames
+for frame_id, info in data.items():
+    action    = info.get('action', 'N/A')       # Task label
+    keypoints = info.get('hand_keypoints', {})  # Detected hands
+    print(f"Frame {frame_id}: {action} — {len(keypoints)} hand(s)")</code></pre>
+    </div>
+
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       FOOTER — black bar, tagline left, links right
+       ═══════════════════════════════════════════════════════ -->
+  <footer class="footer">
+    <!-- Tagline: project name, institution, year -->
+    <span class="footer__text">HomeHands &middot; Built at SJSU &middot; 2026</span>
+
+    <!-- External and internal footer links -->
+    <div class="footer__links">
+      <a href="https://github.com/aneessaheba/HomeHands" target="_blank" rel="noopener" class="footer__link">GitHub</a>
+      <a href="#dataset" class="footer__link">Dataset</a>
+    </div>
+  </footer>
+
+
+  <!-- Main JavaScript file -->
   <script src="js/main.js"></script>
 </body>
 </html>
