@@ -356,71 +356,130 @@ body {
 
 
 /* ============================================================
-   MODALITY CARDS — three cards in a horizontal row
+   MODALITY CARDS — redesigned three-card row
    ============================================================ */
-.modality-row {
-  display: grid;                          /* Side-by-side cards */
+
+/* Three equal columns */
+.mod-row {
+  display: grid;                          /* CSS Grid */
   grid-template-columns: repeat(3, 1fr); /* Three equal-width columns */
   gap: 1.5rem;                            /* Gap between cards */
+  margin-bottom: 1.25rem;                /* Space before the legend row */
 }
 
-.modality-card {
-  border: 1px solid var(--black);  /* Thin solid black border around card */
-  border-radius: var(--radius);    /* Rounded corners */
-  overflow: hidden;                 /* Top accent strip respects border-radius */
-  background: var(--white);        /* White card background */
+/* Individual card: white bg, light #EEEEEE border */
+.mod-card {
+  background: var(--white);   /* White card background */
+  border: 1px solid #EEEEEE; /* Light gray border — much softer than black */
+  border-radius: var(--radius); /* Rounded corners */
+  overflow: hidden;             /* Top strip clips to border-radius */
 }
 
-.modality-card__accent {
-  height: 4px;              /* Thin colored strip at top of each card */
-  background: var(--accent); /* Orange-red top accent */
+/* 3px orange-red top strip */
+.mod-card__border {
+  height: 3px;               /* Thin accent strip */
+  background: var(--accent); /* Orange-red */
 }
 
-.modality-card__content {
-  padding: 1.75rem; /* Internal padding for card content */
+/* Padded content area */
+.mod-card__body {
+  padding: 1.75rem; /* Internal whitespace */
 }
 
-.modality-card__icon {
-  font-size: 2rem;    /* Large icon size */
-  display: block;     /* Sits on its own line */
-  margin-bottom: 0.8rem; /* Space before card title */
+/* Emoji icon */
+.mod-card__icon {
+  font-size: 1.85rem;     /* Large enough to read clearly */
+  display: block;          /* Sits on its own line */
+  margin-bottom: 0.85rem; /* Space before card title */
+  line-height: 1;          /* No extra line-height for emoji */
 }
 
-.modality-card__title {
-  font-size: 1.1rem;    /* Card-level heading */
-  font-weight: 700;      /* Bold */
+/* Card heading */
+.mod-card__title {
+  font-size: 1.05rem;    /* Slightly larger than body */
+  font-weight: 700;       /* Bold */
+  color: var(--black);   /* Black */
   margin-bottom: 0.5rem; /* Space before description */
 }
 
-.modality-card__desc {
-  font-size: 0.875rem;  /* Smaller than body */
-  color: #555555;       /* Medium gray */
-  line-height: 1.65;    /* Comfortable multi-line reading */
-  margin-bottom: 1.4rem; /* Space before stat rows */
+/* Card description */
+.mod-card__desc {
+  font-size: 0.855rem;    /* Slightly smaller than body */
+  color: #555555;          /* Medium gray */
+  line-height: 1.65;       /* Comfortable multi-line */
+  margin-bottom: 1.35rem; /* Space before stat rows */
 }
 
-.modality-card__stats {
-  display: flex;          /* Stack stat rows vertically */
-  flex-direction: column; /* Vertical */
-  gap: 0;                 /* No gap — borders act as dividers */
+/* Stat list container */
+.mod-stats {
+  list-style: none;        /* No bullet points */
+  display: flex;            /* Vertical stack of rows */
+  flex-direction: column;  /* Column direction */
 }
 
-.modality-card__stats li {
-  display: flex;                              /* Key on left, value on right */
-  justify-content: space-between;             /* Push them to opposite ends */
-  font-size: 0.8rem;                          /* Small stat text */
-  color: #444444;                             /* Dark gray */
-  border-bottom: 1px solid var(--gray-mid);  /* Divider between rows */
-  padding: 0.45rem 0;                        /* Vertical padding per row */
+/* Individual stat row: key left, value right */
+.mod-stats li {
+  display: flex;                      /* Flex row */
+  justify-content: space-between;    /* Key and value at opposite ends */
+  align-items: center;               /* Vertically centered */
+  font-size: 0.8rem;                  /* Small type */
+  padding: 0.45rem 0;                /* Row vertical padding */
+  border-bottom: 1px solid #F0F0F0; /* Very light row divider */
 }
 
-.modality-card__stats li:last-child {
-  border-bottom: none; /* Remove divider after the last stat row */
+/* Remove divider after the last stat row */
+.mod-stats li:last-child {
+  border-bottom: none;
 }
 
-.modality-card__stats strong {
-  font-weight: 600;    /* Semi-bold value text */
-  color: var(--black); /* Full black for value */
+/* Stat key: left side, muted gray label */
+.mod-stat__key {
+  color: #666666;    /* Muted gray */
+  font-weight: 500;  /* Medium weight */
+}
+
+/* Stat value: right side, bold black */
+.mod-stat__val {
+  font-weight: 700;    /* Bold */
+  color: var(--black); /* Full black */
+  font-style: normal;  /* Reset any inherited italic */
+}
+
+
+/* ============================================================
+   SEGMENTATION LEGEND — color class label row
+   ============================================================ */
+
+/* Horizontal pill row sitting below the cards */
+.seg-legend {
+  display: flex;                      /* Side-by-side items */
+  align-items: center;               /* Vertically centered */
+  gap: 2.25rem;                       /* Space between each class item */
+  flex-wrap: wrap;                    /* Wrap on narrow screens */
+  padding: 0.9rem 1.5rem;            /* Internal padding */
+  background: #FAFAFA;               /* Very faint gray background */
+  border: 1px solid #EEEEEE;        /* Matching light border */
+  border-radius: var(--radius);     /* Rounded corners */
+}
+
+/* Each emoji + label pair */
+.seg-legend__item {
+  display: flex;         /* Emoji and text side by side */
+  align-items: center;  /* Vertically center */
+  gap: 0.45rem;          /* Gap between emoji and label text */
+}
+
+/* Emoji colored circle */
+.seg-legend__emoji {
+  font-size: 0.95rem;  /* Slightly smaller than body */
+  line-height: 1;       /* No extra line-height for emoji */
+}
+
+/* Text label beside the emoji */
+.seg-legend__label {
+  font-size: 0.82rem;   /* Small label */
+  font-weight: 500;      /* Medium weight */
+  color: var(--black);  /* Black text */
 }
 
 
@@ -685,8 +744,8 @@ body {
   }
 
   /* Stack modality cards vertically */
-  .modality-row {
-    grid-template-columns: 1fr; /* Single column */
+  .mod-row {
+    grid-template-columns: 1fr; /* Single column on tablet/mobile */
   }
 }
 
