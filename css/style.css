@@ -236,6 +236,67 @@ body {
 
 
 /* ============================================================
+   ABOUT SECTION — two-column, plain white, no cards
+   ============================================================ */
+
+/* Two equal columns with a healthy gutter between them */
+.about-cols {
+  display: grid;                     /* CSS Grid */
+  grid-template-columns: 1fr 1fr;   /* Left and right halves */
+  gap: 5rem;                          /* Wide gutter keeps columns breathing */
+  align-items: start;                /* Both columns align at the top */
+}
+
+/* Subsection heading: "Our Mission" / "Get in Touch" */
+.about-col__heading {
+  font-size: 1.1rem;        /* Slightly larger than body */
+  font-weight: 700;          /* Bold */
+  color: var(--black);       /* Black */
+  letter-spacing: -0.01em;  /* Subtle tightening */
+  margin-bottom: 1rem;      /* Space before body text */
+}
+
+/* Body paragraph */
+.about-col__text {
+  font-size: 0.95rem;   /* Slightly smaller than base body */
+  color: #444444;        /* Dark gray — readable but not full black */
+  line-height: 1.8;      /* Loose line height for long prose */
+}
+
+/* Second paragraph in Get in Touch gets extra top margin */
+.about-col__text--spaced {
+  margin-top: 1rem; /* Gap between the two paragraphs */
+}
+
+/* Email link: emoji + address, orange-red, no underline */
+.about-email {
+  display: inline-flex;    /* Sit emoji and address on one line */
+  align-items: center;    /* Vertically center both elements */
+  gap: 0.5rem;             /* Gap between emoji and address text */
+  margin-top: 1.5rem;     /* Space above the email link */
+  color: var(--accent);   /* Orange-red link color */
+  font-size: 0.9rem;       /* Matches body size */
+  font-weight: 600;        /* Semi-bold */
+}
+
+/* Underline address text only on hover for clarity */
+.about-email:hover .about-email__address {
+  text-decoration: underline; /* Underline on hover to confirm it's clickable */
+}
+
+/* Email emoji — no special sizing needed */
+.about-email__icon {
+  font-size: 1rem;  /* Matches surrounding text */
+  line-height: 1;    /* Prevent emoji from adding extra height */
+}
+
+/* Address text portion of the email link */
+.about-email__address {
+  letter-spacing: 0.01em; /* Slight tracking for email readability */
+}
+
+
+/* ============================================================
    BADGE — orange-red pill label for card tagging
    ============================================================ */
 .badge {
@@ -733,6 +794,12 @@ body {
    RESPONSIVE — tablet and mobile adjustments
    ============================================================ */
 @media (max-width: 860px) {
+  /* Stack about columns vertically on tablet */
+  .about-cols {
+    grid-template-columns: 1fr; /* Single column */
+    gap: 2.5rem;                 /* Reduce gap when stacked */
+  }
+
   /* Stack core dataset card columns vertically */
   .cd-card__inner {
     grid-template-columns: 1fr; /* Single column layout */
