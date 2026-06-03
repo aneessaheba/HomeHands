@@ -57,14 +57,6 @@ function copyCode() {
 }
 
 
-// ---- Speed up example grid videos --------------------------
-
-document.querySelectorAll('.example-cell__video').forEach(video => {
-  video.addEventListener('loadedmetadata', () => { video.playbackRate = 2.0; });
-  if (video.readyState >= 1) video.playbackRate = 2.0;
-});
-
-
 // ---- Disabled-button feedback for "coming soon" links -------
 
 document.querySelectorAll('.btn--outlined[href="#"]').forEach(btn => {
