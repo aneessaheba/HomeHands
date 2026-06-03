@@ -1,100 +1,78 @@
 <!DOCTYPE html>
-<html lang="en"> <!-- Language declared for accessibility and SEO -->
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />                          <!-- UTF-8 character encoding -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- Responsive viewport -->
-  <title>Egocentric Homes — Home Hands 10</title> <!-- Browser tab title -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Egocentric Homes — Home Hands 10</title>
 
-  <!-- Google Fonts: Inter — clean, modern, variable weight -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <!-- Main stylesheet -->
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
   <!-- ═══════════════════════════════════════════════════════
-       NAVBAR — sticky top bar with logo, nav links, accent border
+       NAVBAR
        ═══════════════════════════════════════════════════════ -->
   <nav class="navbar">
-    <!-- Logo: bold black text, left side -->
     <span class="navbar__logo">Egocentric Homes</span>
-
-    <!-- Navigation links: right side, scroll to section anchors -->
     <ul class="navbar__links">
-      <li><a href="#dataset">Dataset</a></li>       <!-- Jump to core dataset card -->
-      <li><a href="#modalities">Modalities</a></li> <!-- Jump to modality cards -->
-      <li><a href="#download">Download</a></li>     <!-- Jump to download section -->
+      <li><a href="#about">About</a></li>
+      <li><a href="#dataset">Dataset</a></li>
     </ul>
   </nav>
 
 
   <!-- ═══════════════════════════════════════════════════════
-       HERO — large title, subtitle, two CTAs, stats bar
-       ═══════════════════════════════════════════════════════ -->
-  <section class="hero" id="hero">
-
-    <!-- Main display title -->
-    <h1 class="hero__title">Egocentric Homes</h1>
-
-    <!-- One-sentence dataset description -->
-    <p class="hero__subtitle">
-      An egocentric dataset of household activities<br />
-      with hand pose and semantic segmentation
-    </p>
-
-    <!-- Call-to-action button row -->
-    <div class="hero__buttons">
-      <!-- Primary CTA: filled orange-red -->
-      <a href="#dataset" class="btn btn--filled">Explore Dataset</a>
-      <!-- Secondary CTA: outlined black, opens GitHub in new tab -->
-      <a href="https://github.com/aneessaheba/Egocentric_Homes" target="_blank" rel="noopener" class="btn btn--outlined">GitHub</a>
-    </div>
-
-    <!-- Quick-stats bar: four numbers separated by vertical dividers -->
-    <div class="hero__stats">
-      <div class="stat">
-        <span class="stat__number">10</span>      <!-- Number highlight -->
-        <span class="stat__label">Videos</span>   <!-- Metric label -->
-      </div>
-      <div class="stat__divider"></div>            <!-- Vertical rule -->
-      <div class="stat">
-        <span class="stat__number">21</span>
-        <span class="stat__label">Keypoints</span>
-      </div>
-      <div class="stat__divider"></div>
-      <div class="stat">
-        <span class="stat__number">3</span>
-        <span class="stat__label">Modalities</span>
-      </div>
-      <div class="stat__divider"></div>
-      <div class="stat">
-        <span class="stat__number">10</span>
-        <span class="stat__label">Tasks</span>
-      </div>
-    </div>
-
-  </section>
-
-
-  <!-- ═══════════════════════════════════════════════════════
-       ABOUT — mission left, contact right, plain white layout
+       PAGE 1 — ABOUT
+       Hero intro + mission + contact
        ═══════════════════════════════════════════════════════ -->
   <section class="section" id="about">
 
-    <!-- Section title: shared orange-red left border style -->
+    <!-- Hero intro at the top of the About page -->
+    <div class="about-hero">
+      <h1 class="hero__title">Egocentric Homes</h1>
+      <p class="hero__subtitle">
+        An egocentric dataset of household activities<br />
+        with hand pose and semantic segmentation
+      </p>
+      <div class="hero__buttons">
+        <a href="#dataset" class="btn btn--filled">Explore Dataset</a>
+        <a href="https://github.com/aneessaheba/Egocentric_Homes" target="_blank" rel="noopener" class="btn btn--outlined">GitHub</a>
+      </div>
+      <div class="hero__stats">
+        <div class="stat">
+          <span class="stat__number">10</span>
+          <span class="stat__label">Videos</span>
+        </div>
+        <div class="stat__divider"></div>
+        <div class="stat">
+          <span class="stat__number">21</span>
+          <span class="stat__label">Keypoints</span>
+        </div>
+        <div class="stat__divider"></div>
+        <div class="stat">
+          <span class="stat__number">3</span>
+          <span class="stat__label">Modalities</span>
+        </div>
+        <div class="stat__divider"></div>
+        <div class="stat">
+          <span class="stat__number">10</span>
+          <span class="stat__label">Tasks</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- About heading -->
     <h2 class="section__title section__title--accent">About</h2>
 
-    <!-- Two-column layout: no cards, pure white background -->
+    <!-- Two-column layout: mission left, contact right -->
     <div class="about-cols">
 
-      <!-- LEFT — Our Mission -->
       <div class="about-col">
-        <!-- Subsection heading -->
         <h3 class="about-col__heading">Our Mission</h3>
-        <!-- Body copy -->
         <p class="about-col__text">
           Egocentric Homes is an egocentric data lab focused on modeling human hand
           interactions in everyday household environments. We collect, annotate,
@@ -104,11 +82,8 @@
         </p>
       </div>
 
-      <!-- RIGHT — Get in Touch -->
       <div class="about-col">
-        <!-- Subsection heading -->
         <h3 class="about-col__heading">Get in Touch</h3>
-        <!-- Body copy: two short paragraphs -->
         <p class="about-col__text">
           If you're a researcher or industry partner interested in Home Hands 10
           data, reach out and we'll share dataset samples and access details.
@@ -116,307 +91,184 @@
         <p class="about-col__text about-col__text--spaced">
           Currently available: RGB, Hand Pose, and Semantic Segmentation.
         </p>
-        <!-- Clickable orange-red mailto link -->
         <a href="mailto:aneessaheba.guddi@sjsu.edu" class="about-email">
-          <span class="about-email__icon">📧</span>   <!-- Email emoji -->
+          <span class="about-email__icon">📧</span>
           <span class="about-email__address">aneessaheba.guddi@sjsu.edu</span>
         </a>
       </div>
 
-    </div><!-- /about-cols -->
+    </div>
 
   </section>
 
 
   <!-- ═══════════════════════════════════════════════════════
-       CORE DATASET — accent-titled section with large info card
+       PAGE 2 — DATASET
+       Core dataset card + Modalities + Download
        ═══════════════════════════════════════════════════════ -->
-  <section class="section" id="dataset">
+  <section class="section section--dataset" id="dataset">
 
-    <!-- Section title: "Core Dataset" with orange-red left border accent -->
-    <h2 class="section__title section__title--accent">Core Dataset</h2>
-    <!-- Section subtitle -->
+    <!-- Section heading -->
+    <h2 class="section__title section__title--accent">Dataset</h2>
     <p class="section__subtitle">First-person household activity recordings with multi-modal annotations</p>
 
-    <!-- Large gray card: left = info, right = frame grid -->
+    <!-- ── Core Dataset Card ──────────────────────────────── -->
     <div class="cd-card">
       <div class="cd-card__inner">
 
-        <!-- ── LEFT COLUMN ─────────────────────────────────── -->
         <div class="cd-card__left">
-
-          <!-- Orange-red badge label -->
           <span class="badge">CORE DATA</span>
-
-          <!-- Dataset name -->
           <h3 class="cd-card__title">Home Hands 10</h3>
-
-          <!-- One-paragraph description -->
           <p class="cd-card__desc">
             10 videos of unscripted egocentric household activities captured
             from first-person view with hand pose and semantic segmentation
           </p>
-
-          <!-- 2-column stats grid: 6 numbers in 3 rows -->
           <div class="cd-stats">
-
-            <!-- Stat 1 -->
             <div class="cd-stat">
-              <span class="cd-stat__value">10</span>           <!-- Number -->
-              <span class="cd-stat__key">Videos</span>         <!-- Label -->
+              <span class="cd-stat__value">10</span>
+              <span class="cd-stat__key">Videos</span>
             </div>
-
-            <!-- Stat 2 -->
             <div class="cd-stat">
               <span class="cd-stat__value">516</span>
               <span class="cd-stat__key">Frames</span>
             </div>
-
-            <!-- Stat 3 -->
             <div class="cd-stat">
               <span class="cd-stat__value">21</span>
               <span class="cd-stat__key">Keypoints</span>
             </div>
-
-            <!-- Stat 4 -->
             <div class="cd-stat">
               <span class="cd-stat__value">2</span>
               <span class="cd-stat__key">Hands Per Frame</span>
             </div>
-
-            <!-- Stat 5 -->
             <div class="cd-stat">
               <span class="cd-stat__value">4</span>
               <span class="cd-stat__key">Segmentation Classes</span>
             </div>
-
-            <!-- Stat 6 -->
             <div class="cd-stat">
               <span class="cd-stat__value">10</span>
               <span class="cd-stat__key">Tasks</span>
             </div>
-
-          </div><!-- /cd-stats -->
-
-          <!-- Tag chip row: three keyword labels -->
-          <div class="cd-tags">
-            <span class="cd-tag">Hand Tracking</span>   <!-- Topic tag 1 -->
-            <span class="cd-tag">Segmentation</span>    <!-- Topic tag 2 -->
-            <span class="cd-tag">VLA Training</span>    <!-- Topic tag 3 -->
           </div>
+          <div class="cd-tags">
+            <span class="cd-tag">Hand Tracking</span>
+            <span class="cd-tag">Segmentation</span>
+            <span class="cd-tag">VLA Training</span>
+          </div>
+        </div>
 
-        </div><!-- /cd-card__left -->
-
-        <!-- ── RIGHT COLUMN: 2×3 frame grid ──────────────── -->
         <div class="cd-card__right">
-
-          <!-- Grid wrapper: 2 columns, auto rows -->
           <div class="cd-frames">
-
-            <!-- Row 1, Col 1 -->
             <figure class="cd-frame">
               <img src="assets/frames/frame_000100.png" alt="Frame 100 — folding clothes" class="cd-frame__img" />
               <figcaption class="cd-frame__label">folding clothes</figcaption>
             </figure>
-
-            <!-- Row 1, Col 2 -->
             <figure class="cd-frame">
               <img src="assets/frames/frame_000200.png" alt="Frame 200 — folding clothes" class="cd-frame__img" />
               <figcaption class="cd-frame__label">folding clothes</figcaption>
             </figure>
-
-            <!-- Row 2, Col 1 -->
             <figure class="cd-frame">
               <img src="assets/frames/frame_000300.png" alt="Frame 300 — folding clothes" class="cd-frame__img" />
               <figcaption class="cd-frame__label">folding clothes</figcaption>
             </figure>
-
-            <!-- Row 2, Col 2 -->
             <figure class="cd-frame">
               <img src="assets/frames/frame_000400.png" alt="Frame 400 — folding clothes" class="cd-frame__img" />
               <figcaption class="cd-frame__label">folding clothes</figcaption>
             </figure>
-
-            <!-- Row 3, Col 1 -->
             <figure class="cd-frame">
               <img src="assets/frames/frame_000500.png" alt="Frame 500 — folding clothes" class="cd-frame__img" />
               <figcaption class="cd-frame__label">folding clothes</figcaption>
             </figure>
-
-            <!-- Row 3, Col 2 — repeat frame 100 to complete the 2×3 grid -->
             <figure class="cd-frame">
               <img src="assets/frames/frame_000100.png" alt="Frame sample — folding clothes" class="cd-frame__img" />
               <figcaption class="cd-frame__label">folding clothes</figcaption>
             </figure>
+          </div>
+        </div>
 
-          </div><!-- /cd-frames -->
-        </div><!-- /cd-card__right -->
+      </div>
+    </div>
 
-      </div><!-- /cd-card__inner -->
-    </div><!-- /cd-card -->
-
-  </section>
-
-
-  <!-- ═══════════════════════════════════════════════════════
-       MODALITIES — three cards in a row, one per data stream
-       ═══════════════════════════════════════════════════════ -->
-  <section class="section" id="modalities">
-
-    <!-- Section title with orange-red left border (matches Core Dataset) -->
-    <h2 class="section__title section__title--accent">Modalities</h2>
+    <!-- ── Modalities ─────────────────────────────────────── -->
+    <h3 class="dataset-subheading">Modalities</h3>
     <p class="section__subtitle">Three synchronized data streams captured per recording session</p>
 
-    <!-- Three-card horizontal grid -->
     <div class="mod-row">
 
-      <!-- ── CARD 1: RGB Videos ─────────────────────────── -->
       <div class="mod-card">
-        <div class="mod-card__border"></div>     <!-- 3px orange-red top strip -->
+        <div class="mod-card__border"></div>
         <div class="mod-card__body">
-          <span class="mod-card__icon">📹</span>  <!-- Camera emoji icon -->
+          <span class="mod-card__icon">📹</span>
           <h3 class="mod-card__title">RGB Videos</h3>
           <p class="mod-card__desc">
             Raw first-person egocentric footage of household tasks at 30fps
           </p>
-          <!-- Key / value stat rows -->
           <ul class="mod-stats">
-            <li>
-              <span class="mod-stat__key">Videos</span>      <!-- Stat label left -->
-              <strong class="mod-stat__val">10</strong>       <!-- Stat value right -->
-            </li>
-            <li>
-              <span class="mod-stat__key">FPS</span>
-              <strong class="mod-stat__val">30</strong>
-            </li>
-            <li>
-              <span class="mod-stat__key">Resolution</span>
-              <strong class="mod-stat__val">478 × 850</strong>
-            </li>
-            <li>
-              <span class="mod-stat__key">Format</span>
-              <strong class="mod-stat__val">MP4</strong>
-            </li>
+            <li><span class="mod-stat__key">Videos</span><strong class="mod-stat__val">10</strong></li>
+            <li><span class="mod-stat__key">FPS</span><strong class="mod-stat__val">30</strong></li>
+            <li><span class="mod-stat__key">Resolution</span><strong class="mod-stat__val">478 × 850</strong></li>
+            <li><span class="mod-stat__key">Format</span><strong class="mod-stat__val">MP4</strong></li>
           </ul>
         </div>
       </div>
 
-      <!-- ── CARD 2: Hand Pose ──────────────────────────── -->
       <div class="mod-card">
         <div class="mod-card__border"></div>
         <div class="mod-card__body">
-          <span class="mod-card__icon">✋</span>  <!-- Hand emoji icon -->
+          <span class="mod-card__icon">✋</span>
           <h3 class="mod-card__title">Hand Pose</h3>
           <p class="mod-card__desc">
             21 keypoint skeleton tracking per hand using MediaPipe Hand Landmarker
           </p>
           <ul class="mod-stats">
-            <li>
-              <span class="mod-stat__key">Keypoints</span>
-              <strong class="mod-stat__val">21</strong>
-            </li>
-            <li>
-              <span class="mod-stat__key">Hands</span>
-              <strong class="mod-stat__val">2</strong>
-            </li>
-            <li>
-              <span class="mod-stat__key">Detection Rate</span>
-              <strong class="mod-stat__val">100%</strong>
-            </li>
-            <li>
-              <span class="mod-stat__key">Format</span>
-              <strong class="mod-stat__val">JSON</strong>
-            </li>
+            <li><span class="mod-stat__key">Keypoints</span><strong class="mod-stat__val">21</strong></li>
+            <li><span class="mod-stat__key">Hands</span><strong class="mod-stat__val">2</strong></li>
+            <li><span class="mod-stat__key">Detection Rate</span><strong class="mod-stat__val">100%</strong></li>
+            <li><span class="mod-stat__key">Format</span><strong class="mod-stat__val">JSON</strong></li>
           </ul>
         </div>
       </div>
 
-      <!-- ── CARD 3: Segmentation ───────────────────────── -->
       <div class="mod-card">
         <div class="mod-card__border"></div>
         <div class="mod-card__body">
-          <span class="mod-card__icon">🎨</span>  <!-- Palette emoji icon -->
+          <span class="mod-card__icon">🎨</span>
           <h3 class="mod-card__title">Segmentation</h3>
           <p class="mod-card__desc">
             Semantic segmentation with 4 classes using HSV thresholding and MediaPipe
           </p>
           <ul class="mod-stats">
-            <li>
-              <span class="mod-stat__key">Classes</span>
-              <strong class="mod-stat__val">4</strong>
-            </li>
-            <li>
-              <span class="mod-stat__key">Masks</span>
-              <strong class="mod-stat__val">516</strong>
-            </li>
-            <li>
-              <span class="mod-stat__key">Granularity</span>
-              <strong class="mod-stat__val">Pixel Level</strong>
-            </li>
-            <li>
-              <span class="mod-stat__key">Format</span>
-              <strong class="mod-stat__val">PNG</strong>
-            </li>
+            <li><span class="mod-stat__key">Classes</span><strong class="mod-stat__val">4</strong></li>
+            <li><span class="mod-stat__key">Masks</span><strong class="mod-stat__val">516</strong></li>
+            <li><span class="mod-stat__key">Granularity</span><strong class="mod-stat__val">Pixel Level</strong></li>
+            <li><span class="mod-stat__key">Format</span><strong class="mod-stat__val">PNG</strong></li>
           </ul>
         </div>
       </div>
 
-    </div><!-- /mod-row -->
+    </div>
 
-    <!-- Segmentation class color legend — one row, emoji + label per class -->
     <div class="seg-legend">
-      <!-- Blue: background class -->
-      <span class="seg-legend__item">
-        <span class="seg-legend__emoji">🔵</span>
-        <span class="seg-legend__label">Background</span>
-      </span>
-      <!-- Green: clothing class -->
-      <span class="seg-legend__item">
-        <span class="seg-legend__emoji">🟢</span>
-        <span class="seg-legend__label">Clothing</span>
-      </span>
-      <!-- Red: left hand class -->
-      <span class="seg-legend__item">
-        <span class="seg-legend__emoji">🔴</span>
-        <span class="seg-legend__label">Left Hand</span>
-      </span>
-      <!-- Purple: right hand class -->
-      <span class="seg-legend__item">
-        <span class="seg-legend__emoji">🟣</span>
-        <span class="seg-legend__label">Right Hand</span>
-      </span>
-    </div><!-- /seg-legend -->
+      <span class="seg-legend__item"><span class="seg-legend__emoji">🔵</span><span class="seg-legend__label">Background</span></span>
+      <span class="seg-legend__item"><span class="seg-legend__emoji">🟢</span><span class="seg-legend__label">Clothing</span></span>
+      <span class="seg-legend__item"><span class="seg-legend__emoji">🔴</span><span class="seg-legend__label">Left Hand</span></span>
+      <span class="seg-legend__item"><span class="seg-legend__emoji">🟣</span><span class="seg-legend__label">Right Hand</span></span>
+    </div>
 
-  </section>
-
-
-  <!-- ═══════════════════════════════════════════════════════
-       DOWNLOAD — centered section, buttons, Python snippet
-       ═══════════════════════════════════════════════════════ -->
-  <section class="section section--download" id="download">
-
-    <h2 class="section__title">Download Home Hands 10</h2>
+    <!-- ── Download ──────────────────────────────────────── -->
+    <h3 class="dataset-subheading">Download</h3>
     <p class="section__subtitle">Access annotations, segmentation masks, and raw video clips</p>
 
-    <!-- Three download action buttons side by side -->
     <div class="download-buttons">
-      <!-- Direct download link for the annotations JSON -->
       <a href="assets/data/annotations.json" download class="btn btn--filled">Annotations JSON</a>
-      <!-- Placeholders for future dataset zips -->
       <a href="#" class="btn btn--outlined">Full Dataset (soon)</a>
       <a href="#" class="btn btn--outlined">Segmentation Masks</a>
     </div>
 
-    <!-- Python code snippet for loading annotations -->
     <div class="code-block">
-      <!-- Header bar: language label + copy button -->
       <div class="code-block__header">
         <span class="code-block__lang">Python</span>
-        <!-- Copy button calls copyCode() in main.js -->
         <button class="code-block__copy" onclick="copyCode()">Copy</button>
       </div>
-
-      <!-- The actual code, preserved whitespace -->
       <pre class="code-block__pre"><code id="code-snippet">import json
 
 # Load the Home Hands 10 annotation file
@@ -434,21 +286,16 @@ for frame_id, info in data.items():
 
 
   <!-- ═══════════════════════════════════════════════════════
-       FOOTER — black bar, tagline left, links right
+       FOOTER
        ═══════════════════════════════════════════════════════ -->
   <footer class="footer">
-    <!-- Tagline: project name, institution, year -->
     <span class="footer__text">Egocentric Homes &middot; Built at SJSU &middot; 2026</span>
-
-    <!-- External and internal footer links -->
     <div class="footer__links">
       <a href="https://github.com/aneessaheba/Egocentric_Homes" target="_blank" rel="noopener" class="footer__link">GitHub</a>
       <a href="#dataset" class="footer__link">Dataset</a>
     </div>
   </footer>
 
-
-  <!-- Main JavaScript file -->
   <script src="js/main.js"></script>
 </body>
 </html>

@@ -236,6 +236,38 @@ body {
 
 
 /* ============================================================
+   ABOUT HERO — centered intro block inside the About section
+   ============================================================ */
+.about-hero {
+  text-align: center;
+  padding: 3rem 0 4.5rem;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+
+/* ============================================================
+   DATASET SECTION — page 2 visual separator
+   ============================================================ */
+.section--dataset {
+  border-top: 2px solid var(--gray-mid);
+}
+
+/* Subheadings inside the Dataset section: Modalities, Download */
+.dataset-subheading {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--black);
+  margin-top: 4rem;
+  margin-bottom: 0.4rem;
+  border-left: 4px solid var(--accent);
+  padding-left: 0.75rem;
+}
+
+
+
+/* ============================================================
    ABOUT SECTION — two-column, plain white, no cards
    ============================================================ */
 
