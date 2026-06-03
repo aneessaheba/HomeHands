@@ -159,10 +159,20 @@ body {
 
 
 /* ============================================================
-   DATASET SECTION — page 2 visual separator
+   PAGE SWITCHING — show/hide pages
    ============================================================ */
-.section--dataset {
-  border-top: 2px solid var(--gray-mid);
+.page {
+  display: none;
+}
+
+.page--active {
+  display: block;
+}
+
+/* Active nav link highlight */
+.nav-link--active {
+  color: var(--accent) !important;
+  font-weight: 700;
 }
 
 /* Subheadings inside the Dataset section: Modalities, Download */
