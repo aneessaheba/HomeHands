@@ -90,83 +90,6 @@ body {
 }
 
 
-/* ============================================================
-   HERO SECTION
-   ============================================================ */
-.hero {
-  text-align: center;          /* Center all hero content */
-  padding: 7rem 2rem 5.5rem;   /* Generous top breathing room, less bottom */
-  max-width: var(--max-w);     /* Cap hero width */
-  margin: 0 auto;              /* Horizontally center the section */
-}
-
-.hero__title {
-  font-size: clamp(3.5rem, 9vw, 6rem); /* Fluid: scales with viewport width */
-  font-weight: 800;                     /* Extra-bold display weight */
-  letter-spacing: -0.05em;             /* Very tight tracking for large headline */
-  color: var(--black);                  /* Solid black */
-  line-height: 1;                       /* Tight line height for single-word title */
-  margin-bottom: 1.5rem;               /* Space before subtitle */
-}
-
-.hero__subtitle {
-  font-size: 1.125rem;       /* Slightly larger than base body */
-  color: #444444;            /* Dark gray, not full black — subordinate to title */
-  max-width: 520px;          /* Narrow column for readability */
-  margin: 0 auto 2.75rem;    /* Center and add bottom gap before buttons */
-  line-height: 1.75;         /* Looser line height for multi-line readability */
-}
-
-.hero__buttons {
-  display: flex;            /* Side-by-side buttons */
-  justify-content: center;  /* Center the button group */
-  gap: 1rem;                /* Gap between the two buttons */
-  margin-bottom: 4rem;      /* Space before stats bar */
-  flex-wrap: wrap;          /* Wrap on very narrow screens */
-}
-
-/* ---- Hero Stats Bar ---- */
-.hero__stats {
-  display: flex;                      /* Horizontal stat cells */
-  justify-content: center;            /* Center the whole bar */
-  align-items: stretch;              /* All cells same height */
-  max-width: 520px;                   /* Constrain bar width */
-  margin: 0 auto;                     /* Horizontally center the bar */
-  border: 1px solid var(--gray-mid); /* Thin border around the full bar */
-  border-radius: var(--radius);      /* Rounded corners */
-  overflow: hidden;                   /* Border-radius clips children */
-}
-
-.stat {
-  flex: 1;                  /* Each stat takes equal width */
-  padding: 1.1rem 0.5rem;   /* Vertical and horizontal padding per cell */
-  display: flex;             /* Stack number above label */
-  flex-direction: column;   /* Vertical stack */
-  align-items: center;      /* Center horizontally in cell */
-  gap: 0.2rem;              /* Tight gap between number and label */
-}
-
-.stat__number {
-  font-size: 1.6rem;       /* Large bold number */
-  font-weight: 800;         /* Extra-bold */
-  color: var(--accent);    /* Orange-red numbers for visual pop */
-  line-height: 1;           /* No extra line-height needed */
-}
-
-.stat__label {
-  font-size: 0.7rem;              /* Very small label */
-  font-weight: 600;               /* Semi-bold */
-  color: var(--gray-mute);        /* Muted gray */
-  text-transform: uppercase;      /* ALL CAPS for label styling */
-  letter-spacing: 0.07em;         /* Spaced-out caps */
-}
-
-.stat__divider {
-  width: 1px;                       /* 1px vertical rule */
-  background: var(--gray-mid);     /* Light gray divider */
-  align-self: stretch;             /* Full height of the stat bar */
-}
-
 
 /* ============================================================
    BUTTONS — shared base + filled and outlined variants
@@ -232,17 +155,6 @@ body {
 /* Download section is centered, unlike the rest */
 .section--download {
   text-align: center; /* Center text and children */
-}
-
-
-/* ============================================================
-   ABOUT HERO — centered intro block inside the About section
-   ============================================================ */
-.about-hero {
-  text-align: center;
-  padding: 3rem 0 4.5rem;
-  max-width: 700px;
-  margin: 0 auto;
 }
 
 
