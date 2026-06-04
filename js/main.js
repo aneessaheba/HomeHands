@@ -62,8 +62,8 @@ function copyCode() {
 document.querySelectorAll('.btn--outlined[href="#"]').forEach(btn => {
   btn.addEventListener('click', e => {
     e.preventDefault();
-    btn.style.borderColor = '#FF4500';
-    btn.style.color       = '#FF4500';
+    btn.style.borderColor = '#2563EB';
+    btn.style.color       = '#2563EB';
     setTimeout(() => {
       btn.style.borderColor = '';
       btn.style.color       = '';

@@ -2,7 +2,7 @@
    DESIGN TOKENS — single source of truth for colors and spacing
    ============================================================ */
 :root {
-  --accent:    #FF4500;   /* Orange-red: badges, buttons, borders, highlights */
+  --accent:    #2563EB;   /* Blue: badges, buttons, borders, highlights */
   --black:     #111111;   /* Primary text and strong UI elements */
   --white:     #FFFFFF;   /* Page background */
   --gray-bg:   #F5F5F5;   /* Card and code-block backgrounds */
@@ -114,8 +114,8 @@ body {
 }
 
 .btn--filled:hover {
-  background: #e03d00;     /* Slightly darker on hover */
-  border-color: #e03d00;   /* Keep border in sync */
+  background: #1d4ed8;     /* Slightly darker blue on hover */
+  border-color: #1d4ed8;   /* Keep border in sync */
 }
 
 .btn--outlined {
