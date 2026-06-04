@@ -239,12 +239,14 @@ body {
 
 .example-cell__label {
   position: absolute;
-  bottom: 0.5rem;
-  left: 0.6rem;
-  font-size: 0.72rem;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem 0.7rem 0.5rem;
+  background: linear-gradient(transparent, rgba(0,0,0,0.72));
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--white);
-  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
   letter-spacing: 0.01em;
 }
 
