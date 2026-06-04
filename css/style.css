@@ -756,6 +756,209 @@ body {
 
 
 /* ============================================================
+   HH1 CORE DATASET CARD — HomeHands-1 card at top of Dataset page
+   ============================================================ */
+
+/* Outer card: light gray background, generous padding */
+.hh1-card {
+  background: var(--gray-bg);
+  border-radius: 12px;
+  padding: 2.5rem;
+  margin-bottom: 3rem;
+}
+
+/* Two equal columns with a hairline divider between them */
+.hh1-card__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  align-items: start;
+}
+
+/* Left column: content + right border acts as divider */
+.hh1-card__left {
+  padding-right: 2.5rem;
+  border-right: 1px solid var(--gray-mid);
+}
+
+/* Right column */
+.hh1-card__right {
+  padding-left: 2.5rem;
+}
+
+/* Dataset name — large bold heading */
+.hh1-card__title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  color: var(--black);
+  margin-top: 0.6rem;
+  margin-bottom: 0.85rem;
+}
+
+/* Description paragraph */
+.hh1-card__desc {
+  font-size: 0.92rem;
+  color: #444444;
+  line-height: 1.75;
+  margin-bottom: 1.75rem;
+}
+
+/* ── Stats grid: 2 columns × 4 rows ── */
+.hh1-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.45rem;
+  margin-bottom: 1.75rem;
+}
+
+/* Individual stat box: dark border, centered content */
+.hh1-stat {
+  border: 1.5px solid #222222;
+  border-radius: 5px;
+  padding: 0.55rem 0.5rem 0.45rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+/* Bold "--" placeholder number */
+.hh1-stat__num {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--black);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* Small uppercase gray label below the number */
+.hh1-stat__label {
+  font-size: 0.58rem;
+  font-weight: 600;
+  color: #888888;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+/* ── Task tag chips ── */
+.hh1-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* Each tag: gray border, black text, rounded */
+.hh1-tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.28rem 0.65rem;
+  border: 1.5px solid #cccccc;
+  border-radius: 4px;
+  color: var(--black);
+}
+
+/* ── RGB Videos badge on right side ── */
+.hh1-rgb-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: var(--white);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+/* ── 3×2 video grid ── */
+.hh1-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Individual cell: fixed aspect ratio, clips content */
+.hh1-cell {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: #1a1a1a;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+/* Video fills the cell completely */
+.hh1-cell video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Label: white text over gradient at the bottom */
+.hh1-cell__label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem 0.5rem 0.35rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.72));
+  color: var(--white);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* Empty placeholder cell: center the "+" icon */
+.hh1-cell--empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+/* "+" icon in placeholder cells */
+.hh1-cell__plus {
+  font-size: 1.4rem;
+  color: #444444;
+  line-height: 1;
+}
+
+/* Override label alignment for empty cells — center it */
+.hh1-cell--empty .hh1-cell__label {
+  position: static;
+  background: none;
+  padding: 0;
+  color: #555555;
+  font-size: 0.65rem;
+}
+
+/* Responsive: stack the two halves on tablet */
+@media (max-width: 860px) {
+  .hh1-card__inner {
+    grid-template-columns: 1fr;
+  }
+  .hh1-card__left {
+    border-right: none;
+    border-bottom: 1px solid var(--gray-mid);
+    padding-right: 0;
+    padding-bottom: 2rem;
+    margin-bottom: 2rem;
+  }
+  .hh1-card__right {
+    padding-left: 0;
+  }
+}
+
+
+/* ============================================================
    RESPONSIVE — tablet and mobile adjustments
    ============================================================ */
 @media (max-width: 860px) {
