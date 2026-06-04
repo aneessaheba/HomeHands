@@ -24,6 +24,7 @@ import tempfile     # create a temporary .wav file that is auto-deleted when don
 import time         # measure how long the script takes to run
 from pathlib import Path   # clean, cross-platform file path handling
 
+import cv2          # OpenCV — used to burn subtitles frame-by-frame (libass not required)
 import whisper      # OpenAI Whisper — local speech-to-text, runs entirely offline
 
 
@@ -42,21 +43,6 @@ SUBTITLED_DIR  = Path("assets/processed/subtitled")
 # Larger options: "small", "medium", "large" — more accurate but slower.
 WHISPER_MODEL = "base"
 
-
-# ── Subtitle style (for ffmpeg subtitle burning) ──────────────────────────────
-
-# These settings are passed to ffmpeg's subtitle filter.
-# They follow the SSA/ASS subtitle format (SubStation Alpha).
-SUBTITLE_STYLE = (
-    "FontName=Arial,"          # font family — Arial is clean and widely available
-    "FontSize=24,"             # font size in points
-    "PrimaryColour=&H00FFFFFF,"  # text fill color: white  (&H00 = fully opaque in SSA)
-    "OutlineColour=&H00000000,"  # outline color: black
-    "Outline=2,"               # outline thickness in pixels
-    "Shadow=0,"                # no drop shadow
-    "Alignment=2,"             # 2 = bottom-center in SSA alignment numbering
-    "MarginV=25"               # vertical margin from the bottom edge in pixels
-)
 
 
 # ── Helper: check ffmpeg ───────────────────────────────────────────────────────
@@ -185,42 +171,114 @@ def write_srt(segments: list, srt_path: Path):
 
 # ── Step 4: burn subtitles into a video copy ─────────────────────────────────
 
+def parse_srt(srt_path: Path) -> list:
+    """
+    Parse a .srt file and return a list of subtitle dicts.
+    Each dict: {"start": float_seconds, "end": float_seconds, "text": str}
+    """
+    def ts_to_sec(ts: str) -> float:
+        """Convert  00:00:02,300  →  2.3  (seconds as float)."""
+        ts = ts.strip().replace(",", ".")    # normalise comma decimal separator
+        h, m, rest = ts.split(":")
+        return int(h) * 3600 + int(m) * 60 + float(rest)
+
+    subs    = []
+    blocks  = [b.strip() for b in srt_path.read_text(encoding="utf-8").split("\n\n") if b.strip()]
+    for block in blocks:
+        parts = block.splitlines()
+        if len(parts) < 3 or " --> " not in parts[1]:
+            continue
+        start_str, end_str = parts[1].split(" --> ")
+        subs.append({
+            "start": ts_to_sec(start_str),
+            "end":   ts_to_sec(end_str),
+            "text":  " ".join(parts[2:]),    # join multi-line text
+        })
+    return subs
+
+
 def burn_subtitles(video_path: Path, srt_path: Path, output_path: Path):
     """
-    Use ffmpeg to hardcode (burn) the subtitle text directly into the video pixels.
+    Burn subtitles into the video using OpenCV — no libass/ffmpeg filter needed.
 
-    "Hardcoded" means the text is baked into each video frame — viewers cannot
-    turn it off like soft subtitles. This is useful for a dataset demo.
-
-    The SRT file path is copied to a temp location first because ffmpeg's subtitle
-    filter does not handle spaces in file paths well on macOS/Linux.
+    Reads every frame, draws the active subtitle text in white with a black
+    outline at the bottom-center, then writes a new video with the same FPS.
+    Audio is re-muxed from the original with a second ffmpeg call.
     """
-    import shutil as _shutil    # local import to avoid shadowing the top-level shutil
-    import os                   # needed to create a temp file without auto-deleting it
+    subs = parse_srt(srt_path)   # list of {start, end, text} dicts
 
-    # Create a temp SRT file with a simple name (no spaces) to avoid ffmpeg issues
-    tmp_srt_fd, tmp_srt_str = tempfile.mkstemp(suffix=".srt")   # mkstemp returns (fd, path)
-    os.close(tmp_srt_fd)                    # close the file descriptor — we only need the path
-    tmp_srt_path = Path(tmp_srt_str)        # convert string path to Path object
-    _shutil.copy(srt_path, tmp_srt_path)    # copy the real SRT to the temp location
+    cap   = cv2.VideoCapture(str(video_path))
+    fps   = cap.get(cv2.CAP_PROP_FPS)
+    w     = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    h     = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-    try:
-        subprocess.run(
-            [
-                "ffmpeg",
-                "-y",                                 # overwrite output without asking
-                "-i", str(video_path),                # input: the original video
-                "-vf",                                # -vf = "video filter"
-                f"subtitles={tmp_srt_path}:force_style={SUBTITLE_STYLE}",
-                                                      # NOTE: no extra single-quotes here —
-                                                      # subprocess list args don't need shell quoting
-                "-c:a", "copy",                       # copy audio stream unchanged (no re-encode)
-                str(output_path),                     # output: the new subtitled video file
-            ],
-            check=True,    # raise an error if ffmpeg fails
-        )
-    finally:
-        tmp_srt_path.unlink(missing_ok=True)   # always delete the temp SRT, even if ffmpeg fails
+    # Write frames to a temp file (no audio yet)
+    import os
+    tmp_fd, tmp_str = tempfile.mkstemp(suffix=".mp4")
+    os.close(tmp_fd)
+    tmp_video = Path(tmp_str)
+
+    # H264 codec for the output video
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    writer = cv2.VideoWriter(str(tmp_video), fourcc, fps, (w, h))
+
+    font       = cv2.FONT_HERSHEY_DUPLEX   # clean readable font
+    font_scale = h / 700                   # scale with frame height
+    thickness  = max(2, int(h / 500))      # scale thickness too
+    margin     = int(h * 0.06)             # distance from bottom edge
+
+    frame_id = 0
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        timestamp = frame_id / fps   # current position in seconds
+
+        # Find active subtitle (if any) for this timestamp
+        active_text = ""
+        for sub in subs:
+            if sub["start"] <= timestamp < sub["end"]:
+                active_text = sub["text"]
+                break
+
+        if active_text:
+            # Measure text size so we can center it horizontally
+            (text_w, text_h), baseline = cv2.getTextSize(
+                active_text, font, font_scale, thickness
+            )
+            x = (w - text_w) // 2              # center horizontally
+            y = h - margin                     # near bottom
+
+            # Draw black outline by rendering text in 8 directions, then white on top
+            for dx, dy in [(-2,-2),(-2,0),(-2,2),(0,-2),(0,2),(2,-2),(2,0),(2,2)]:
+                cv2.putText(frame, active_text, (x+dx, y+dy),
+                            font, font_scale, (0, 0, 0), thickness, cv2.LINE_AA)
+            cv2.putText(frame, active_text, (x, y),
+                        font, font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
+
+        writer.write(frame)
+        frame_id += 1
+
+    cap.release()
+    writer.release()
+
+    # Re-mux: copy audio from original into the subtitled video
+    subprocess.run(
+        [
+            "ffmpeg", "-y",
+            "-i", str(tmp_video),       # subtitled video (no audio)
+            "-i", str(video_path),      # original (for audio)
+            "-map", "0:v:0",            # video from subtitled file
+            "-map", "1:a:0",            # audio from original
+            "-c:v", "copy",             # copy video stream unchanged
+            "-c:a", "copy",             # copy audio stream unchanged
+            str(output_path),
+        ],
+        check=True,
+        capture_output=True,
+    )
+    tmp_video.unlink(missing_ok=True)   # clean up the no-audio temp file
 
 
 # ── Step 5: write narration JSON ─────────────────────────────────────────────
