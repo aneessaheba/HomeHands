@@ -211,9 +211,9 @@ def burn_subtitles(video_path: Path, srt_path: Path, output_path: Path):
                 "-y",                                 # overwrite output without asking
                 "-i", str(video_path),                # input: the original video
                 "-vf",                                # -vf = "video filter"
-                f"subtitles={tmp_srt_path}:force_style='{SUBTITLE_STYLE}'",
-                                                      # filter: overlay the SRT subtitles
-                                                      # force_style overrides the default look
+                f"subtitles={tmp_srt_path}:force_style={SUBTITLE_STYLE}",
+                                                      # NOTE: no extra single-quotes here —
+                                                      # subprocess list args don't need shell quoting
                 "-c:a", "copy",                       # copy audio stream unchanged (no re-encode)
                 str(output_path),                     # output: the new subtitled video file
             ],

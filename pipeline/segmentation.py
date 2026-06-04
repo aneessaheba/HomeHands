@@ -235,8 +235,9 @@ def segment_frame(
             )
 
         # masks[0] is the first (and only) mask when multimask_output=False
-        # dtype: bool,  shape: (H, W)
-        mask = masks[0]
+        # SAM2 on MPS/CPU may return uint8 or float — force to bool so NumPy
+        # array indexing (overlay[mask] = color) works correctly on all devices
+        mask = masks[0].astype(bool)
 
         # ── Blend the colored mask onto the frame ────────────
         # Strategy: paint the mask color onto a copy (overlay), then
