@@ -1,8 +1,9 @@
 """
 hand_pose.py
 ────────────
-Reads every frame of a video, detects hands using MediaPipe,
-draws the 21-keypoint skeleton on each frame, and saves:
+Reads every frame of a video, detects hands using MediaPipe Tasks API
+(compatible with MediaPipe 0.10+), draws the 21-keypoint skeleton on
+each frame, and saves:
   • annotated frame PNGs  →  assets/processed/annotated/<clip_name>/
   • keypoint JSON         →  assets/processed/hand_pose/<clip_name>.json
 
@@ -12,173 +13,211 @@ Usage:
 
 # ── Imports ───────────────────────────────────────────────────────────────────
 
-import sys                          # lets us read the command-line argument (the video path)
-import json                         # lets us write Python dicts as .json files
-import time                         # used to measure how long the script takes
-from pathlib import Path            # modern way to work with file/folder paths
+import sys                    # read the command-line argument (video path)
+import json                   # write Python dicts as .json files
+import time                   # measure how long the script takes
+from pathlib import Path      # cross-platform file path handling
 
-import cv2                          # OpenCV — opens videos, reads frames, saves images
-import mediapipe as mp              # MediaPipe — hand detection and landmark tracking
+import cv2                    # OpenCV — opens videos, reads frames, saves images
+import numpy as np            # NumPy — needed for drawing connections manually
+import mediapipe as mp        # MediaPipe — hand detection
 
-
-# ── MediaPipe setup ───────────────────────────────────────────────────────────
-
-# mp.solutions.hands gives us the Hands detector class
-mp_hands = mp.solutions.hands
-
-# mp.solutions.drawing_utils gives us draw_landmarks() to draw the skeleton
-mp_draw = mp.solutions.drawing_utils
-
-# mp.solutions.drawing_styles gives us pre-built colors for the hand skeleton
-mp_styles = mp.solutions.drawing_styles
+# MediaPipe Tasks API — the modern interface for MediaPipe 0.10+
+from mediapipe.tasks import python as mp_tasks               # base options etc.
+from mediapipe.tasks.python import vision as mp_vision       # HandLandmarker lives here
+from mediapipe.tasks.python.components.containers import \
+    landmark as mp_landmark                                  # landmark types
 
 
-# ── Landmark name lookup ──────────────────────────────────────────────────────
+# ── Model path ────────────────────────────────────────────────────────────────
+
+# Path to the downloaded hand_landmarker.task model file
+# (run:  curl -L -o assets/models/hand_landmarker.task \
+#   https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task)
+MODEL_PATH = Path("assets/models/hand_landmarker.task")
+
+
+# ── Output folders ────────────────────────────────────────────────────────────
+
+ANNOTATED_ROOT = Path("assets/processed/annotated")   # annotated frame PNGs
+HAND_POSE_ROOT = Path("assets/processed/hand_pose")   # keypoint JSON files
+
+
+# ── Landmark name list ────────────────────────────────────────────────────────
 
 # MediaPipe returns 21 landmarks numbered 0–20.
-# This list maps each number to its human-readable name.
-# Index position in the list = landmark ID (so index 0 = "WRIST", etc.)
+# This list maps each index to its human-readable name.
 LANDMARK_NAMES = [
-    "WRIST",                # 0  — base of the hand
-    "THUMB_CMC",            # 1  — thumb base (carpometacarpal)
-    "THUMB_MCP",            # 2  — thumb first knuckle (metacarpophalangeal)
-    "THUMB_IP",             # 3  — thumb second knuckle (interphalangeal)
-    "THUMB_TIP",            # 4  — thumb fingertip
-    "INDEX_FINGER_MCP",     # 5  — index knuckle at palm
-    "INDEX_FINGER_PIP",     # 6  — index first bend
-    "INDEX_FINGER_DIP",     # 7  — index second bend
-    "INDEX_FINGER_TIP",     # 8  — index fingertip
-    "MIDDLE_FINGER_MCP",    # 9  — middle knuckle at palm
-    "MIDDLE_FINGER_PIP",    # 10 — middle first bend
-    "MIDDLE_FINGER_DIP",    # 11 — middle second bend
-    "MIDDLE_FINGER_TIP",    # 12 — middle fingertip
-    "RING_FINGER_MCP",      # 13 — ring knuckle at palm
-    "RING_FINGER_PIP",      # 14 — ring first bend
-    "RING_FINGER_DIP",      # 15 — ring second bend
-    "RING_FINGER_TIP",      # 16 — ring fingertip
-    "PINKY_MCP",            # 17 — pinky knuckle at palm
-    "PINKY_PIP",            # 18 — pinky first bend
-    "PINKY_DIP",            # 19 — pinky second bend
-    "PINKY_TIP",            # 20 — pinky fingertip
+    "WRIST",             # 0
+    "THUMB_CMC",         # 1
+    "THUMB_MCP",         # 2
+    "THUMB_IP",          # 3
+    "THUMB_TIP",         # 4
+    "INDEX_FINGER_MCP",  # 5
+    "INDEX_FINGER_PIP",  # 6
+    "INDEX_FINGER_DIP",  # 7
+    "INDEX_FINGER_TIP",  # 8
+    "MIDDLE_FINGER_MCP", # 9
+    "MIDDLE_FINGER_PIP", # 10
+    "MIDDLE_FINGER_DIP", # 11
+    "MIDDLE_FINGER_TIP", # 12
+    "RING_FINGER_MCP",   # 13
+    "RING_FINGER_PIP",   # 14
+    "RING_FINGER_DIP",   # 15
+    "RING_FINGER_TIP",   # 16
+    "PINKY_MCP",         # 17
+    "PINKY_PIP",         # 18
+    "PINKY_DIP",         # 19
+    "PINKY_TIP",         # 20
+]
+
+# Which landmark indices are connected by lines to form the skeleton
+# Each tuple is a pair of indices that should be drawn as a bone
+HAND_CONNECTIONS = [
+    (0,1),(1,2),(2,3),(3,4),         # thumb
+    (0,5),(5,6),(6,7),(7,8),         # index finger
+    (0,9),(9,10),(10,11),(11,12),    # middle finger
+    (0,13),(13,14),(14,15),(15,16),  # ring finger
+    (0,17),(17,18),(18,19),(19,20),  # pinky
+    (5,9),(9,13),(13,17),            # palm crossbars
 ]
 
 
-# ── Output folder roots ───────────────────────────────────────────────────────
+# ── Drawing helper ────────────────────────────────────────────────────────────
 
-# Base folder for annotated frame images
-ANNOTATED_ROOT = Path("assets/processed/annotated")
+def draw_hand_skeleton(frame: np.ndarray, landmarks: list, width: int, height: int):
+    """
+    Draw the 21-keypoint hand skeleton directly on a frame (in place).
 
-# Base folder for keypoint JSON files
-HAND_POSE_ROOT = Path("assets/processed/hand_pose")
+    landmarks — list of NormalizedLandmark objects (x, y are 0.0–1.0)
+    width, height — pixel dimensions of the frame (for converting normalised → px)
+    """
+    # Convert all normalised coordinates to pixel positions
+    pts = [
+        (int(lm.x * width), int(lm.y * height))   # (px_x, px_y) for each landmark
+        for lm in landmarks
+    ]
+
+    # Draw bones (lines between connected landmark pairs)
+    for start_idx, end_idx in HAND_CONNECTIONS:
+        cv2.line(
+            frame,
+            pts[start_idx],    # start point (x, y) in pixels
+            pts[end_idx],      # end point   (x, y) in pixels
+            (0, 200, 0),       # colour: green in BGR
+            2,                 # line thickness in pixels
+        )
+
+    # Draw a filled circle at each of the 21 keypoints
+    for px, py in pts:
+        cv2.circle(frame, (px, py), 5, (0, 0, 255), -1)   # red filled dot, radius 5
 
 
 # ── Main function ─────────────────────────────────────────────────────────────
 
 def process_video(video_path: str):
     """
-    Full pipeline for one video file:
-      1. Open video
-      2. Loop over every frame
-      3. Detect hands with MediaPipe
-      4. Draw skeleton on frame and save as PNG
-      5. Collect keypoints into a list
-      6. Write everything to JSON
-      7. Print progress + final summary
+    Full pipeline for one video:
+      1. Open video with OpenCV
+      2. Set up MediaPipe HandLandmarker (Tasks API)
+      3. Process every frame
+      4. Draw skeleton + save annotated PNG
+      5. Collect all keypoints
+      6. Write JSON
+      7. Print summary
     """
 
-    # Convert the string path to a Path object so we can use .stem, .name, etc.
-    video_path = Path(video_path)
+    video_path = Path(video_path)          # convert string to Path object
 
-    # Make sure the file actually exists before we try to open it
     if not video_path.exists():
         print(f"[ERROR] File not found: {video_path}")
-        sys.exit(1)                  # exit with error code 1
+        sys.exit(1)
 
-    # The clip name is the filename without extension, e.g. "WashingCup"
-    clip_name = video_path.stem
+    # Verify the model file is present — it must be downloaded first
+    if not MODEL_PATH.exists():
+        print(f"[ERROR] Model file not found: {MODEL_PATH}")
+        print("  Run this to download it:")
+        print("  curl -L -o assets/models/hand_landmarker.task \\")
+        print("    https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task")
+        sys.exit(1)
+
+    clip_name = video_path.stem            # e.g. "WashingCup"
 
     print(f"\n{'=' * 60}")
     print(f"  Hand Pose Pipeline")
     print(f"  Clip : {clip_name}")
     print(f"{'=' * 60}\n")
 
-    # ── Step 1: open the video with OpenCV ───────────────────
+    # ── Open video ────────────────────────────────────────────
+    cap = cv2.VideoCapture(str(video_path))   # open the video file
 
-    cap = cv2.VideoCapture(str(video_path))  # open the video file
-
-    # If OpenCV can't open the file it returns False here
     if not cap.isOpened():
         print(f"[ERROR] Could not open video: {video_path}")
         sys.exit(1)
 
-    # Read video metadata — these properties live inside the VideoCapture object
-    fps          = cap.get(cv2.CAP_PROP_FPS)                  # frames per second (e.g. 30.0)
-    width        = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))     # pixel width  (e.g. 1920)
-    height       = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))    # pixel height (e.g. 1080)
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))     # total number of frames
+    fps          = cap.get(cv2.CAP_PROP_FPS)                   # frames per second
+    width        = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))      # pixel width
+    height       = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))     # pixel height
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))      # total frame count
 
     print(f"  Resolution : {width} x {height}")
     print(f"  FPS        : {fps}")
-    print(f"  Frames     : {total_frames}")
-    print()
+    print(f"  Frames     : {total_frames}\n")
 
-    # ── Step 2: create output folders ────────────────────────
+    # ── Create output folders ─────────────────────────────────
+    annotated_dir = ANNOTATED_ROOT / clip_name           # e.g. .../annotated/WashingCup/
+    annotated_dir.mkdir(parents=True, exist_ok=True)     # create if missing
+    HAND_POSE_ROOT.mkdir(parents=True, exist_ok=True)    # create if missing
 
-    # Folder for annotated frames, e.g. assets/processed/annotated/WashingCup/
-    annotated_dir = ANNOTATED_ROOT / clip_name
-    annotated_dir.mkdir(parents=True, exist_ok=True)   # create all missing parent folders
+    # ── Set up MediaPipe HandLandmarker (Tasks API) ───────────
 
-    # Folder for the JSON output (already exists but mkdir is safe to call again)
-    HAND_POSE_ROOT.mkdir(parents=True, exist_ok=True)
+    # BaseOptions tells MediaPipe where the model file is
+    base_opts = mp_tasks.BaseOptions(model_asset_path=str(MODEL_PATH))
 
-    # ── Step 3: set up MediaPipe Hands ───────────────────────
-
-    # We create the Hands detector inside a 'with' block so MediaPipe
-    # automatically frees GPU/CPU resources when we're done.
-    hands_detector = mp_hands.Hands(
-        static_image_mode=False,          # False = video mode (uses tracking between frames, faster)
-        max_num_hands=2,                  # detect up to 2 hands per frame
-        min_detection_confidence=0.5,     # minimum confidence to call something a hand (0-1)
-        min_tracking_confidence=0.5,      # minimum confidence to keep tracking an existing hand
+    # HandLandmarkerOptions configures the detector
+    options = mp_vision.HandLandmarkerOptions(
+        base_options=base_opts,
+        num_hands=2,                    # detect up to 2 hands per frame
+        min_hand_detection_confidence=0.5,   # minimum confidence to detect a hand
+        min_hand_presence_confidence=0.5,    # minimum confidence to keep tracking
+        min_tracking_confidence=0.5,         # minimum confidence for frame-to-frame tracking
+        running_mode=mp_vision.RunningMode.IMAGE,  # IMAGE mode = process one frame at a time
     )
 
-    # ── Step 4: set up counters and storage ──────────────────
+    # Create the HandLandmarker detector from these options
+    detector = mp_vision.HandLandmarker.create_from_options(options)
 
-    frames_data   = []             # list that will hold one dict per frame (for the JSON)
-    frame_id      = 0              # current frame number (starts at 0)
-    count_2_hands = 0              # frames where both hands were visible
-    count_1_hand  = 0              # frames where only one hand was visible
-    count_0_hands = 0              # frames where no hand was detected
-    start_time    = time.time()    # record when we started (for the speed stat at the end)
+    # ── Counters ──────────────────────────────────────────────
+    frames_data   = []       # one dict per frame, collected for the JSON
+    frame_id      = 0        # current frame index (starts at 0)
+    count_2_hands = 0        # frames with 2 hands detected
+    count_1_hand  = 0        # frames with 1 hand detected
+    count_0_hands = 0        # frames with no hands detected
+    start_time    = time.time()
 
-    # ── Step 5: loop over every frame ────────────────────────
+    # ── Frame loop ────────────────────────────────────────────
+    while True:
+        ret, frame = cap.read()    # read next frame; ret=False at end of video
+        if not ret:
+            break                  # no more frames
 
-    while True:                         # keep reading frames until the video ends
-
-        ret, frame = cap.read()         # ret = True if a frame was read successfully
-                                        # frame = the image as a NumPy array (height x width x 3)
-
-        if not ret:                     # ret is False when there are no more frames
-            break                       # exit the while loop
-
-        # ── Convert colour from BGR to RGB ───────────────────
-        # OpenCV loads frames in BGR colour order (Blue, Green, Red).
-        # MediaPipe expects RGB (Red, Green, Blue), so we swap the channels here.
+        # Convert BGR (OpenCV) → RGB (MediaPipe)
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        # ── Run MediaPipe hand detection ─────────────────────
-        # Setting writeable=False before processing is a small speed optimisation:
-        # it tells NumPy not to make a copy of the array inside MediaPipe.
-        frame_rgb.flags.writeable = False               # mark as read-only
-        results = hands_detector.process(frame_rgb)     # run detection — this is the main call
-        frame_rgb.flags.writeable = True                # allow writing again for later steps
+        # Wrap the NumPy array in a MediaPipe Image object
+        mp_image = mp.Image(
+            image_format=mp.ImageFormat.SRGB,   # standard RGB colour space
+            data=frame_rgb,                      # the pixel data
+        )
 
-        # ── Count how many hands were found ──────────────────
-        # results.multi_hand_landmarks is None when no hands are found,
-        # or a list (one entry per hand) when hands are detected.
-        num_hands = len(results.multi_hand_landmarks) if results.multi_hand_landmarks else 0
+        # Run hand detection on this frame
+        detection_result = detector.detect(mp_image)
 
-        # Update running counts
+        # detection_result.hand_landmarks  — list of 21-landmark lists (one per hand)
+        # detection_result.handedness      — list of handedness classifications
+        num_hands = len(detection_result.hand_landmarks)   # 0, 1, or 2
+
+        # Update counters
         if num_hands == 2:
             count_2_hands += 1
         elif num_hands == 1:
@@ -186,117 +225,86 @@ def process_video(video_path: str):
         else:
             count_0_hands += 1
 
-        # ── Draw the skeleton on a copy of the frame ─────────
-        # We copy the original BGR frame so we draw on top of real video colours.
-        annotated_frame = frame.copy()    # .copy() so we don't modify the original
+        # ── Draw skeleton on a copy of the frame ─────────────
+        annotated_frame = frame.copy()    # don't modify the original
+        for hand_landmarks in detection_result.hand_landmarks:
+            draw_hand_skeleton(annotated_frame, hand_landmarks, width, height)
 
-        if results.multi_hand_landmarks:   # only try to draw if hands were found
-            for hand_landmarks in results.multi_hand_landmarks:
-                # draw_landmarks draws:
-                #   • a circle at each of the 21 keypoints
-                #   • lines between connected keypoints (the "bones")
-                mp_draw.draw_landmarks(
-                    annotated_frame,                                  # image to draw on
-                    hand_landmarks,                                   # 21 landmark points
-                    mp_hands.HAND_CONNECTIONS,                        # which points to connect
-                    mp_styles.get_default_hand_landmarks_style(),     # dot colours/sizes
-                    mp_styles.get_default_hand_connections_style(),   # line colours/thickness
-                )
+        # ── Save annotated frame as PNG ───────────────────────
+        fname = f"frame_{str(frame_id).zfill(6)}.png"   # zero-padded filename
+        cv2.imwrite(str(annotated_dir / fname), annotated_frame)
 
-        # ── Save the annotated frame as PNG ──────────────────
-        # zfill(6) pads the number with leading zeros: 1 → "000001"
-        # This keeps files sorted correctly in any file browser.
-        frame_filename  = f"frame_{str(frame_id).zfill(6)}.png"
-        frame_save_path = annotated_dir / frame_filename
-        cv2.imwrite(str(frame_save_path), annotated_frame)   # write the image to disk
+        # ── Build keypoint data for JSON ──────────────────────
+        hands_list = []
 
-        # ── Collect keypoint data for the JSON ───────────────
-        hands_list = []   # will hold one dict per detected hand for this frame
+        for hand_lms, handedness in zip(
+            detection_result.hand_landmarks,    # 21 landmarks per hand
+            detection_result.handedness,        # classification per hand
+        ):
+            # handedness[0] contains the best classification result
+            hand_label      = handedness[0].category_name   # "Left" or "Right"
+            hand_confidence = round(handedness[0].score, 4) # confidence score
 
-        if results.multi_hand_landmarks and results.multi_handedness:
-            # zip() pairs up:
-            #   results.multi_hand_landmarks[i] — the 21 landmarks of hand i
-            #   results.multi_handedness[i]      — the label ("Left"/"Right") of hand i
-            for hand_landmarks, handedness in zip(
-                results.multi_hand_landmarks,
-                results.multi_handedness,
-            ):
-                # classification[0] holds the best match: label and confidence score
-                hand_label      = handedness.classification[0].label         # "Left" or "Right"
-                hand_confidence = round(handedness.classification[0].score, 4)  # e.g. 0.9732
+            # Build a dict of all 21 named keypoints
+            keypoints_dict = {}
+            for idx, lm in enumerate(hand_lms):
+                name = LANDMARK_NAMES[idx]
+                keypoints_dict[name] = {
+                    "x":  round(lm.x, 6),           # normalised x (0–1)
+                    "y":  round(lm.y, 6),           # normalised y (0–1)
+                    "z":  round(lm.z, 6),           # relative depth
+                    "px": int(lm.x * width),        # pixel x
+                    "py": int(lm.y * height),       # pixel y
+                }
 
-                # Build a dict of all 21 named keypoints for this hand
-                keypoints_dict = {}
-                for idx, landmark in enumerate(hand_landmarks.landmark):
-                    # landmark.x, .y are normalised (0.0 to 1.0 relative to frame dimensions)
-                    # landmark.z is relative depth — negative means closer to camera
-                    name = LANDMARK_NAMES[idx]   # look up the human-readable name
+            hands_list.append({
+                "label":      hand_label,
+                "confidence": hand_confidence,
+                "keypoints":  keypoints_dict,
+            })
 
-                    keypoints_dict[name] = {
-                        "x":  round(landmark.x, 6),        # normalised x  (0 = left edge)
-                        "y":  round(landmark.y, 6),        # normalised y  (0 = top edge)
-                        "z":  round(landmark.z, 6),        # relative depth
-                        "px": int(landmark.x * width),     # actual pixel x on the frame
-                        "py": int(landmark.y * height),    # actual pixel y on the frame
-                    }
-
-                # Add this hand's complete data to the list
-                hands_list.append({
-                    "label":      hand_label,        # "Left" or "Right"
-                    "confidence": hand_confidence,   # how sure MediaPipe is
-                    "keypoints":  keypoints_dict,    # all 21 named landmark positions
-                })
-
-        # ── Build the frame dict and add to master list ───────
+        # ── Append frame entry ────────────────────────────────
         frames_data.append({
-            "frame_id":       frame_id,                    # e.g. 0, 1, 2 ...
-            "timestamp_sec":  round(frame_id / fps, 4),   # e.g. 0.0333 seconds
-            "hands_detected": num_hands,                  # 0, 1, or 2
-            "hands":          hands_list,                 # list of hand dicts (may be empty)
+            "frame_id":       frame_id,
+            "timestamp_sec":  round(frame_id / fps, 4),
+            "hands_detected": num_hands,
+            "hands":          hands_list,
         })
 
-        # ── Print progress every 100 frames ──────────────────
+        # ── Progress print every 100 frames ──────────────────
         if frame_id % 100 == 0:
-            elapsed  = time.time() - start_time            # seconds elapsed so far
-            pct_done = (frame_id / total_frames) * 100     # how far through the video we are
+            elapsed  = time.time() - start_time
+            pct_done = (frame_id / total_frames) * 100
             print(
                 f"  Frame {frame_id:>6} / {total_frames}"
                 f"  ({pct_done:5.1f}%)"
                 f"  |  hands: 2={count_2_hands}  1={count_1_hand}  0={count_0_hands}"
-                f"  |  {elapsed:.1f}s elapsed"
+                f"  |  {elapsed:.1f}s"
             )
 
-        frame_id += 1    # increment frame counter before the next loop iteration
+        frame_id += 1   # advance frame counter
 
-    # ── Step 6: release resources ─────────────────────────────
-    cap.release()             # close the video file and free OpenCV's file handle
-    hands_detector.close()   # release MediaPipe's internal model and memory
+    # ── Release resources ─────────────────────────────────────
+    cap.release()      # close video file
+    detector.close()   # release MediaPipe model resources
 
-    # ── Step 7: write the keypoint JSON ───────────────────────
-
+    # ── Write JSON ────────────────────────────────────────────
     output_json = {
-        "clip_name":    clip_name,       # e.g. "WashingCup"
-        "total_frames": frame_id,        # number of frames we actually processed
-        "fps":          fps,             # original video frame rate
-        "resolution": {
-            "width":  width,             # frame width in pixels
-            "height": height,            # frame height in pixels
-        },
-        "frames": frames_data,           # the big list — one entry per frame
+        "clip_name":    clip_name,
+        "total_frames": frame_id,
+        "fps":          fps,
+        "resolution":   {"width": width, "height": height},
+        "frames":       frames_data,
     }
 
-    # Build the file path, e.g. assets/processed/hand_pose/WashingCup.json
     json_path = HAND_POSE_ROOT / f"{clip_name}.json"
-
-    # Write the dict to disk as a nicely formatted JSON file
     with open(json_path, "w") as f:
-        json.dump(output_json, f, indent=2)   # indent=2 adds spaces so it's readable
+        json.dump(output_json, f, indent=2)
 
-    # ── Step 8: print final summary ───────────────────────────
-
-    total_time         = time.time() - start_time               # total run time in seconds
-    frames_with_hands  = count_1_hand + count_2_hands           # frames that had at least one hand
-    detection_rate     = (frames_with_hands / frame_id) * 100   # as a percentage
+    # ── Summary ───────────────────────────────────────────────
+    total_time        = time.time() - start_time
+    frames_with_hands = count_1_hand + count_2_hands
+    detection_rate    = (frames_with_hands / frame_id) * 100
 
     print(f"\n{'─' * 60}")
     print(f"  SUMMARY  —  {clip_name}")
@@ -315,20 +323,9 @@ def process_video(video_path: str):
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
-# This block only runs when you execute this file directly:
-#   python pipeline/hand_pose.py assets/videos/WashingCup.mp4
-#
-# It does NOT run when another script does  "import hand_pose"
 if __name__ == "__main__":
-
-    # sys.argv is a list of everything you typed on the command line.
-    # sys.argv[0] is always the script name itself ("pipeline/hand_pose.py").
-    # sys.argv[1] should be the video path the user provided.
     if len(sys.argv) != 2:
-        # Wrong number of arguments — show usage instructions and exit
         print("Usage  : python pipeline/hand_pose.py <path_to_video>")
         print("Example: python pipeline/hand_pose.py assets/videos/WashingCup.mp4")
-        sys.exit(1)   # non-zero exit code signals an error to the shell
-
-    # Call our main function with the path the user typed
+        sys.exit(1)
     process_video(sys.argv[1])
