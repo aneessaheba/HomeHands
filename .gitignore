@@ -3,6 +3,10 @@ assets/videos/*.mov
 homehands_env/
 assets/models/*.pt
 assets/models/*.pth
+assets/processed/frames/
+assets/processed/tracked/
+assets/processed/annotated/
+assets/processed/segmented/
 **/.DS_Store
 .DS_Store
 pipeline/__pycache__/
