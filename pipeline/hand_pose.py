@@ -1,19 +1,14 @@
 """
 hand_pose.py
 ────────────
-Accurate wrist tracking using MediaPipe HandLandmarker (Tasks API).
+Full 21-point hand tracking using MediaPipe HandLandmarker (Tasks API).
 
-MediaPipe's hand model works well from any camera angle — including
-top-down GoPro footage — because it was trained specifically on hands,
-not full-body poses. It detects up to 2 hands and returns the wrist
-position (landmark 0) reliably.
+Detects up to 2 hands per frame and draws all 21 landmarks:
+  - WRIST (landmark 0) — base of palm
+  - 4 landmarks per finger × 5 fingers = 20 finger joints
+  - Connecting lines between joints forming the full hand skeleton
 
-For each frame:
-  - Detect up to 2 hands
-  - Get the WRIST landmark (index 0) for each hand
-  - Draw a clean circle at each wrist
-  - Label "L" (red) for left hand, "R" (blue) for right hand
-  - Save annotated PNG + keypoint JSON
+Left hand = red,  Right hand = blue.
 
 Usage:
   From pre-extracted frames:
@@ -56,14 +51,30 @@ TEST_MAX_FRAMES = 100
 TEST_SAVE_AT    = [1, 25, 50, 75, 100]
 
 # Drawing sizes (scaled to 4K footage)
-DOT_RADIUS      = 28     # outer circle radius
-DOT_INNER       = 14     # inner white center radius
-LINE_THICKNESS  = 6      # label outline thickness
+DOT_RADIUS  = 18     # joint dot radius
+DOT_INNER   = 8      # white center radius
+BONE_WIDTH  = 5      # line thickness for bones
 
 # Colors (BGR)
 COLOR_LEFT  = (50,  50,  230)   # red   — left  hand
 COLOR_RIGHT = (230, 80,  50 )   # blue  — right hand
-COLOR_WHITE = (255, 255, 255)   # white center dot
+COLOR_WHITE = (255, 255, 255)   # white center dots
+
+# All 21 hand landmark connections — each tuple draws a bone line
+HAND_CONNECTIONS = [
+    # Thumb
+    (0,1),(1,2),(2,3),(3,4),
+    # Index finger
+    (0,5),(5,6),(6,7),(7,8),
+    # Middle finger
+    (0,9),(9,10),(10,11),(11,12),
+    # Ring finger
+    (0,13),(13,14),(14,15),(15,16),
+    # Pinky
+    (0,17),(17,18),(18,19),(19,20),
+    # Palm crossbars
+    (5,9),(9,13),(13,17),
+]
 
 
 # ── MediaPipe setup ───────────────────────────────────────────────────────────
@@ -112,50 +123,62 @@ def process_frame(detector, frame: np.ndarray, width: int, height: int) -> tuple
     # Run detection
     result = detector.detect(mp_image)
 
-    # Pair each hand's landmarks with its handedness classification
     for landmarks, handedness in zip(
-        result.hand_landmarks,    # list of 21-landmark lists
-        result.handedness,        # list of classification results
+        result.hand_landmarks,
+        result.handedness,
     ):
-        # Handedness: "Left" or "Right" (from MediaPipe's perspective,
-        # which is mirrored vs. real world for front-facing cameras —
-        # but for GoPro top-down this is less of an issue)
         label      = handedness[0].category_name   # "Left" or "Right"
         confidence = round(handedness[0].score, 4)
+        color      = COLOR_LEFT if label == "Left" else COLOR_RIGHT
+        side       = "L" if label == "Left" else "R"
 
-        # WRIST is landmark index 0 — the base of the palm
-        wrist_lm = landmarks[0]
-        px = int(wrist_lm.x * width)    # convert normalised (0-1) → pixels
-        py = int(wrist_lm.y * height)
+        # Convert all 21 landmarks to pixel coordinates
+        pts = [
+            (int(lm.x * width), int(lm.y * height))
+            for lm in landmarks
+        ]
 
-        # Choose color based on hand label
-        color = COLOR_LEFT if label == "Left" else COLOR_RIGHT
-        side  = "L" if label == "Left" else "R"
+        # ── Draw bone lines between connected joints ───────────────────────
+        for a, b in HAND_CONNECTIONS:
+            cv2.line(annotated, pts[a], pts[b], color, BONE_WIDTH, cv2.LINE_AA)
 
-        # ── Draw wrist dot ────────────────────────────────────────────────────
-        cv2.circle(annotated, (px, py), DOT_RADIUS,     color,       -1, cv2.LINE_AA)
-        cv2.circle(annotated, (px, py), DOT_INNER,      COLOR_WHITE, -1, cv2.LINE_AA)
-        cv2.circle(annotated, (px, py), DOT_RADIUS + 3, (0,0,0),      3, cv2.LINE_AA)  # black ring
+        # ── Draw a dot at every joint ──────────────────────────────────────
+        for px, py in pts:
+            cv2.circle(annotated, (px, py), DOT_RADIUS, color,       -1, cv2.LINE_AA)
+            cv2.circle(annotated, (px, py), DOT_INNER,  COLOR_WHITE, -1, cv2.LINE_AA)
 
-        # ── Draw label "L" or "R" next to the dot ────────────────────────────
-        lx = px + DOT_RADIUS + 10   # place label to the right of the dot
-        ly = py + 14                # vertically centered
-
-        # Black outline
-        for dx, dy in [(-3,-3),(-3,3),(3,-3),(3,3),(0,-3),(0,3),(-3,0),(3,0)]:
+        # ── Label "L" or "R" next to the wrist (landmark 0) ───────────────
+        wx, wy = pts[0]
+        lx, ly = wx + DOT_RADIUS + 10, wy + 14
+        for dx, dy in [(-3,-3),(-3,3),(3,-3),(3,3)]:
             cv2.putText(annotated, side, (lx+dx, ly+dy),
                         cv2.FONT_HERSHEY_DUPLEX, 1.8, (0,0,0), 5, cv2.LINE_AA)
-        # Colored label on top
         cv2.putText(annotated, side, (lx, ly),
                     cv2.FONT_HERSHEY_DUPLEX, 1.8, color, 2, cv2.LINE_AA)
+
+        # ── Store all 21 keypoints for JSON ───────────────────────────────
+        keypoints = {}
+        NAMES = [
+            "WRIST","THUMB_CMC","THUMB_MCP","THUMB_IP","THUMB_TIP",
+            "INDEX_MCP","INDEX_PIP","INDEX_DIP","INDEX_TIP",
+            "MIDDLE_MCP","MIDDLE_PIP","MIDDLE_DIP","MIDDLE_TIP",
+            "RING_MCP","RING_PIP","RING_DIP","RING_TIP",
+            "PINKY_MCP","PINKY_PIP","PINKY_DIP","PINKY_TIP",
+        ]
+        for i, (lm, (px, py)) in enumerate(zip(landmarks, pts)):
+            keypoints[NAMES[i]] = {
+                "px": px, "py": py,
+                "x":  round(lm.x, 6),
+                "y":  round(lm.y, 6),
+                "z":  round(lm.z, 6),
+            }
 
         wrist_data.append({
             "label":      label,
             "confidence": confidence,
-            "px":         px,
-            "py":         py,
-            "x_norm":     round(wrist_lm.x, 6),   # normalised x  (0-1)
-            "y_norm":     round(wrist_lm.y, 6),   # normalised y  (0-1)
+            "px":         pts[0][0],   # wrist pixel x
+            "py":         pts[0][1],   # wrist pixel y
+            "keypoints":  keypoints,
         })
 
     return annotated, wrist_data
