@@ -497,6 +497,161 @@ def run_test():
     print()
 
 
+# ── Frames folder mode ───────────────────────────────────────────────────────
+
+def process_frames(frames_dir: str, fps: float = 29.97):
+    """
+    Read already-extracted frames from a folder, draw the arm + hand skeleton
+    on each one, and save annotated PNGs.
+
+    frames_dir  — path to a folder of JPEG/PNG frames named frame_000000.jpg etc.
+    fps         — original video FPS (used only for timestamp calculation in JSON)
+
+    Why read from frames instead of video?
+      We already extracted raw frames in a separate step. Reading PNGs/JPEGs
+      is faster than re-decoding a compressed video, and it avoids doing the
+      same work twice.
+    """
+
+    frames_dir = Path(frames_dir)
+
+    if not frames_dir.exists():
+        print(f"[ERROR] Frames folder not found: {frames_dir}")
+        sys.exit(1)
+
+    if not MODEL_PATH.exists():
+        print(f"[ERROR] Model not found: {MODEL_PATH}")
+        sys.exit(1)
+
+    # Clip name comes from the folder name, e.g. "Cutting Banana"
+    clip_name = frames_dir.name
+
+    # Collect all frame files, sorted so they process in the correct order
+    # Accept both .jpg and .png frames
+    frame_files = sorted(
+        list(frames_dir.glob("frame_*.jpg")) +
+        list(frames_dir.glob("frame_*.png"))
+    )
+
+    if not frame_files:
+        print(f"[ERROR] No frame files found in {frames_dir}")
+        sys.exit(1)
+
+    total_frames = len(frame_files)   # total number of frames to process
+
+    # Read the first frame to get resolution
+    first = cv2.imread(str(frame_files[0]))
+    height, width = first.shape[:2]   # shape is (H, W, channels)
+
+    print(f"\n{'=' * 60}")
+    print(f"  Hand Pose  —  from extracted frames")
+    print(f"  Clip       : {clip_name}")
+    print(f"  Frames dir : {frames_dir}")
+    print(f"{'=' * 60}")
+    print(f"  Resolution : {width} x {height}")
+    print(f"  FPS        : {fps}")
+    print(f"  Frames     : {total_frames}\n")
+
+    # Create output folders
+    annotated_dir = ANNOTATED_ROOT / clip_name
+    annotated_dir.mkdir(parents=True, exist_ok=True)
+    HAND_POSE_ROOT.mkdir(parents=True, exist_ok=True)
+
+    # Load MediaPipe HolisticLandmarker
+    options = mp_vision.HolisticLandmarkerOptions(
+        base_options=mp_tasks.BaseOptions(model_asset_path=str(MODEL_PATH)),
+        running_mode=mp_vision.RunningMode.IMAGE,
+        min_pose_detection_confidence=0.5,
+        min_pose_landmarks_confidence=0.5,
+        min_hand_landmarks_confidence=0.5,
+    )
+    detector = mp_vision.HolisticLandmarker.create_from_options(options)
+
+    frames_data = []    # per-frame JSON entries
+    frame_id    = 0     # current frame index (0-based)
+    count_2     = 0
+    count_1     = 0
+    count_0     = 0
+    start_time  = time.time()
+
+    for frame_file in frame_files:   # loop over every frame file in sorted order
+
+        # Read the raw frame from disk
+        frame = cv2.imread(str(frame_file))
+
+        if frame is None:
+            print(f"  [WARN] Could not read {frame_file.name} — skipping")
+            frame_id += 1
+            continue
+
+        # Convert BGR → RGB for MediaPipe
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        mp_image  = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
+
+        # Run detection
+        result = detector.detect(mp_image)
+        data   = detect_frame(result, width, height)
+
+        # Draw skeleton on a copy and save
+        annotated = frame.copy()
+        annotate_frame(annotated, data)
+        cv2.imwrite(str(annotated_dir / f"frame_{str(frame_id).zfill(6)}.png"), annotated)
+
+        # Count hands
+        num_hands = int(data["left_hand_detected"]) + int(data["right_hand_detected"])
+        if num_hands == 2: count_2 += 1
+        elif num_hands == 1: count_1 += 1
+        else: count_0 += 1
+
+        frames_data.append({
+            "frame_id":       frame_id,
+            "timestamp_sec":  round(frame_id / fps, 4),
+            "hands_detected": num_hands,
+            "hands":          data["hands"],
+        })
+
+        if frame_id % 100 == 0:
+            elapsed = time.time() - start_time
+            pct     = (frame_id / total_frames) * 100
+            print(
+                f"  Frame {frame_id:>6} / {total_frames}"
+                f"  ({pct:5.1f}%)"
+                f"  |  hands: 2={count_2}  1={count_1}  0={count_0}"
+                f"  |  {elapsed:.1f}s"
+            )
+
+        frame_id += 1
+
+    detector.close()
+
+    # Save JSON
+    json_path = HAND_POSE_ROOT / f"{clip_name}.json"
+    with open(json_path, "w") as f:
+        json.dump({
+            "clip_name":    clip_name,
+            "total_frames": frame_id,
+            "fps":          fps,
+            "resolution":   {"width": width, "height": height},
+            "frames":       frames_data,
+        }, f, indent=2)
+
+    total_time    = time.time() - start_time
+    frames_hands  = count_1 + count_2
+    detection_rate = (frames_hands / frame_id) * 100 if frame_id > 0 else 0
+
+    print(f"\n{'─' * 60}")
+    print(f"  SUMMARY  —  {clip_name}")
+    print(f"{'─' * 60}")
+    print(f"  Total frames   : {frame_id}")
+    print(f"  With hands     : {frames_hands}  ({detection_rate:.1f}%)")
+    print(f"  2 hands        : {count_2}")
+    print(f"  1 hand         : {count_1}")
+    print(f"  0 hands        : {count_0}")
+    print(f"  Time taken     : {total_time:.1f}s")
+    print(f"\n  Annotated frames → {annotated_dir}/")
+    print(f"  Keypoints JSON   → {json_path}\n")
+
+
 # ── Full video mode ───────────────────────────────────────────────────────────
 
 def process_video(video_path: str):
@@ -627,15 +782,24 @@ def process_video(video_path: str):
 
 if __name__ == "__main__":
 
-    # Check if the user passed --test flag
     if "--test" in sys.argv:
-        run_test()   # quick 100-frame test
+        run_test()   # quick 100-frame test on first 100 frames of WashingCup
+
+    elif "--frames" in sys.argv:
+        # Read from an already-extracted frames folder
+        # Usage: python pipeline/hand_pose.py --frames "assets/processed/frames/Cutting Banana"
+        idx = sys.argv.index("--frames")
+        if idx + 1 >= len(sys.argv):
+            print("Usage: python pipeline/hand_pose.py --frames <frames_folder>")
+            sys.exit(1)
+        process_frames(sys.argv[idx + 1])
 
     elif len(sys.argv) == 2:
-        process_video(sys.argv[1])   # full video
+        process_video(sys.argv[1])   # full video file
 
     else:
         print("Usage:")
-        print("  Test mode  : python pipeline/hand_pose.py --test")
-        print("  Full video : python pipeline/hand_pose.py assets/videos/WashingCup.mp4")
+        print("  From frames folder : python pipeline/hand_pose.py --frames <folder>")
+        print("  From video file    : python pipeline/hand_pose.py <video_path>")
+        print("  Quick test         : python pipeline/hand_pose.py --test")
         sys.exit(1)
