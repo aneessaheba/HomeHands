@@ -978,6 +978,356 @@ body {
   }
 }
 
+/* ============================================================
+   PIPELINE PAGE — orange-red theme override (#FF4500)
+   ============================================================ */
+
+/* Override accent to orange-red on pipeline page */
+[data-theme="pipeline"] {
+  --accent: #FF4500;
+}
+[data-theme="pipeline"] .btn--filled:hover {
+  background: #cc3700;
+  border-color: #cc3700;
+}
+
+/* ── Pipeline hero ─────────────────────────────────────── */
+.pl-hero {
+  text-align: center;
+  padding: 3.5rem 0 4.5rem;
+  max-width: 680px;
+  margin: 0 auto;
+}
+.pl-badge {
+  display: inline-block;
+  background: #FF4500;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  margin-bottom: 1.25rem;
+}
+.pl-hero__title {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--black);
+  margin: 0 0 1rem;
+}
+.pl-hero__sub {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.75;
+  margin-bottom: 2rem;
+}
+.pl-btn {
+  background: #FF4500;
+  color: #fff !important;
+  border-color: #FF4500;
+  text-decoration: none;
+}
+.pl-btn:hover {
+  background: #cc3700;
+  border-color: #cc3700;
+}
+
+/* ── Pipeline section wrapper + heading ────────────────── */
+.pl-section {
+  margin-bottom: 4.5rem;
+}
+.pl-section__title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--black);
+  border-left: 4px solid #FF4500;
+  padding-left: 0.85rem;
+  margin-bottom: 2rem;
+}
+
+/* ── Flow diagram ──────────────────────────────────────── */
+.pl-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+.pl-flow__source-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0;
+}
+.pl-flow__steps {
+  display: flex;
+  align-items: flex-start;
+}
+.pl-flow__col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 140px;
+}
+.pl-flow__box {
+  background: var(--white);
+  border: 1.5px solid #222;
+  border-top: 3px solid #FF4500;
+  border-radius: 6px;
+  padding: 0.55rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+.pl-flow__box--source {
+  background: #111;
+  color: var(--white);
+  border-color: #111;
+  border-top-color: #FF4500;
+  font-size: 0.85rem;
+  padding: 0.65rem 1.75rem;
+}
+.pl-flow__box--out {
+  background: var(--gray-bg);
+  border-color: #ccc;
+  border-top-color: #FF4500;
+  font-size: 0.72rem;
+  color: #555;
+}
+.pl-flow__box--combined {
+  background: #FF4500;
+  color: var(--white);
+  border-color: #FF4500;
+  border-top-color: #cc3700;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.pl-flow__v {
+  color: #FF4500;
+  font-size: 1.1rem;
+  line-height: 2;
+  font-weight: 700;
+}
+.pl-flow__h {
+  color: #FF4500;
+  font-size: 1.3rem;
+  font-weight: 700;
+  padding: 0 0.35rem;
+  margin-top: 0.55rem;
+  align-self: flex-start;
+  line-height: 1.8;
+}
+
+/* ── Tool cards grid ────────────────────────────────────── */
+.pl-tools {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+.pl-tool {
+  background: var(--white);
+  border: 1.5px solid #ddd;
+  border-top: 3px solid #FF4500;
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: box-shadow 0.2s;
+}
+.pl-tool:hover {
+  box-shadow: 0 6px 24px rgba(0,0,0,0.09);
+}
+.pl-tool__badge {
+  display: inline-block;
+  background: #FF4500;
+  color: var(--white);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 3px;
+  align-self: flex-start;
+}
+.pl-tool__name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--black);
+  margin: 0;
+}
+.pl-tool__desc {
+  font-size: 0.82rem;
+  color: #555;
+  line-height: 1.65;
+  flex: 1;
+}
+.pl-tool__meta {
+  border-top: 1px solid var(--gray-mid);
+  padding-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.pl-tool__row {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+  align-items: baseline;
+}
+.pl-tool__key {
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  min-width: 52px;
+}
+.pl-tool__val {
+  color: var(--black);
+}
+.pl-tool__cmd {
+  background: #111;
+  color: #fff;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.73rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 5px;
+  margin: 0;
+  overflow-x: auto;
+  white-space: pre;
+}
+.pl-tool__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.1rem;
+}
+.pl-tool__link {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #FF4500;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+}
+.pl-tool__link:hover {
+  text-decoration: underline;
+}
+
+/* ── Quick Start code block ─────────────────────────────── */
+.pl-quickstart {
+  position: relative;
+  background: #111;
+  border-radius: 10px;
+  padding: 2rem 2rem 2rem;
+  overflow-x: auto;
+}
+.pl-quickstart__copy {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: 1px solid #444;
+  color: #aaa;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.25rem 0.7rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.04em;
+  transition: border-color 0.15s, color 0.15s;
+}
+.pl-quickstart__copy:hover {
+  border-color: #FF4500;
+  color: #FF4500;
+}
+.pl-quickstart pre {
+  color: #fff;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.82rem;
+  line-height: 1.8;
+  margin: 0;
+  white-space: pre;
+}
+.pl-comment {
+  color: #FF4500;
+}
+
+/* ── Models table ───────────────────────────────────────── */
+.pl-table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1.5px solid #ddd;
+}
+.pl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.pl-table thead tr {
+  background: #111;
+  color: var(--white);
+}
+.pl-table th {
+  padding: 0.85rem 1.1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.pl-table td {
+  padding: 0.8rem 1.1rem;
+  border-bottom: 1px solid #eee;
+  color: var(--black);
+}
+.pl-table tbody tr:nth-child(even) {
+  background: var(--gray-bg);
+}
+.pl-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Output format JSON block ──────────────────────────── */
+.pl-json {
+  background: #111;
+  border-radius: 10px;
+  padding: 2rem;
+  overflow-x: auto;
+}
+.pl-json pre {
+  color: #fff;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.8rem;
+  line-height: 1.8;
+  margin: 0;
+  white-space: pre;
+}
+.pl-json-key  { color: #7dd3fc; }
+.pl-json-str  { color: #86efac; }
+.pl-json-num  { color: #fbbf24; }
+.pl-json-null { color: #aaa; }
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .pl-hero__title { font-size: 2.2rem; }
+  .pl-tools { grid-template-columns: 1fr; }
+  .pl-flow__steps {
+    flex-direction: column;
+    align-items: center;
+  }
+  .pl-flow__h {
+    transform: rotate(90deg);
+    margin-top: 0;
+    padding: 0;
+  }
+}
+
 /* ── Derived Datasets divider ──────────────────────────── */
 .derived-divider {
   display: flex;
