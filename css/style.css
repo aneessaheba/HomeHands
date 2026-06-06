@@ -227,7 +227,7 @@ body {
   gap: 4px;
   margin-top: 1rem;
   /* Fill remaining viewport: subtract navbar (64px) + top padding + text block */
-  height: calc(100vh - 210px);
+  height: 58vh;
   background: var(--black);
   border-radius: var(--radius);
   overflow: hidden;
