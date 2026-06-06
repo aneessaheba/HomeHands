@@ -42,7 +42,7 @@ COLOR_RIGHT_RGB = (  0, 255,   0)   # green — right arm
 
 # ── Sampling ──────────────────────────────────────────────────────────────────
 
-PROCESS_EVERY_N = 3   # run SAM3 on every 3rd frame; copy result to frames in between
+PROCESS_EVERY_N = 9   # run SAM3 on every 9th frame; copy result to frames in between
 
 
 # ── Model loader ──────────────────────────────────────────────────────────────
@@ -130,7 +130,7 @@ def segment_frame(predictor, frame_bgr, frame_h, frame_w):
     Returns (annotated_bgr, left_info_dict, right_info_dict).
     Right arm is painted first, left arm on top → left always wins on overlap.
     """
-    frame_bgr = cv2.resize(frame_bgr, (640, 360))
+    frame_bgr = cv2.resize(frame_bgr, (1920, 1080))
     pil_img    = Image.fromarray(cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB))
     right_mask = run_prompt(predictor, pil_img, "right arm")
     left_mask  = run_prompt(predictor, pil_img, "left arm")
