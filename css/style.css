@@ -1387,6 +1387,21 @@ body {
   font-size: 2.5rem;
 }
 
+/* Closed-caption indicator — bottom-right of derived card thumbnail */
+.derived-cc {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
 .derived-badge {
   position: absolute;
   top: 0.5rem;
