@@ -190,34 +190,44 @@ body {
 
 
 /* ============================================================
-   ABOUT SECTION — single-block description
+   ABOUT SECTION — compact layout so grid fits in one viewport
    ============================================================ */
+
+/* Tighten vertical padding so the grid has maximum space */
+#about.section {
+  padding-top: 1.75rem;
+  padding-bottom: 0;
+}
+
 .about-body {
   max-width: 680px;
 }
 
 .about-body__question {
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--black);
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.5rem;
 }
 
 .about-body__text {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #444444;
-  line-height: 1.85;
+  line-height: 1.65;
 }
 
 
 /* ============================================================
-   EXAMPLE VIDEO GRID — 3×3 grid below the About description
+   EXAMPLE VIDEO GRID — 4×4 viewport-fitted grid
    ============================================================ */
 .example-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
   gap: 4px;
-  margin-top: 2.5rem;
+  margin-top: 1rem;
+  /* Fill remaining viewport: subtract navbar (64px) + top padding + text block */
+  height: calc(100vh - 210px);
   background: var(--black);
   border-radius: var(--radius);
   overflow: hidden;
@@ -225,7 +235,7 @@ body {
 
 .example-cell {
   position: relative;
-  aspect-ratio: 16 / 10;
+  /* No fixed aspect-ratio — rows stretch to fill the grid height */
   background: #1a1a1a;
   overflow: hidden;
 }
@@ -242,9 +252,9 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 1.5rem 0.7rem 0.5rem;
+  padding: 1rem 0.5rem 0.3rem;
   background: linear-gradient(transparent, rgba(0,0,0,0.72));
-  font-size: 0.78rem;
+  font-size: 0.68rem;
   font-weight: 600;
   color: var(--white);
   letter-spacing: 0.01em;
@@ -257,6 +267,11 @@ body {
 @media (max-width: 600px) {
   .example-grid {
     grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    height: auto;
+  }
+  .example-cell {
+    aspect-ratio: 16 / 9;
   }
 }
 
