@@ -1,0 +1,73 @@
+{
+  "clip_name": "WashibgClothsinWasher",
+  "total_segments": 11,
+  "total_duration_sec": 78.4,
+  "narrations": [
+    {
+      "id": 1,
+      "start": 1.84,
+      "end": 4.42,
+      "text": "I am opening the washer."
+    },
+    {
+      "id": 2,
+      "start": 7.56,
+      "end": 11.28,
+      "text": "I am putting clothes in the washer."
+    },
+    {
+      "id": 3,
+      "start": 22.18,
+      "end": 25.8,
+      "text": "I am opening the cupboard."
+    },
+    {
+      "id": 4,
+      "start": 27.86,
+      "end": 32.08,
+      "text": "I am taking detergent."
+    },
+    {
+      "id": 5,
+      "start": 35.4,
+      "end": 37.56,
+      "text": "I am opening the detergent."
+    },
+    {
+      "id": 6,
+      "start": 41.64,
+      "end": 43.8,
+      "text": "I am pouring the detergent."
+    },
+    {
+      "id": 7,
+      "start": 47.42,
+      "end": 51.8,
+      "text": "I am closing the detergent."
+    },
+    {
+      "id": 8,
+      "start": 54.38,
+      "end": 58.1,
+      "text": "I am putting the detergent back."
+    },
+    {
+      "id": 9,
+      "start": 61.0,
+      "end": 62.64,
+      "text": "I am closing the cupboard."
+    },
+    {
+      "id": 10,
+      "start": 67.32,
+      "end": 70.04,
+      "text": "I am closing the washer."
+    },
+    {
+      "id": 11,
+      "start": 74.18,
+      "end": 80.24,
+      "text": "I am turning on the washer."
+    }
+  ]
+}

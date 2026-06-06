@@ -1,0 +1,25 @@
+{
+  "clip_name": "FoldingClothes",
+  "total_segments": 3,
+  "total_duration_sec": 46.56,
+  "narrations": [
+    {
+      "id": 1,
+      "start": 0.0,
+      "end": 3.14,
+      "text": "I am folding a socks."
+    },
+    {
+      "id": 2,
+      "start": 16.54,
+      "end": 22.2,
+      "text": "I am folding a pant."
+    },
+    {
+      "id": 3,
+      "start": 42.56,
+      "end": 46.56,
+      "text": "I am folding a t-shirt."
+    }
+  ]
+}

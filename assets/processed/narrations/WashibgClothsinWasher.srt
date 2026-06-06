@@ -1,0 +1,43 @@
+1
+00:00:01,840 --> 00:00:04,420
+I am opening the washer.
+
+2
+00:00:07,560 --> 00:00:11,280
+I am putting clothes in the washer.
+
+3
+00:00:22,180 --> 00:00:25,800
+I am opening the cupboard.
+
+4
+00:00:27,860 --> 00:00:32,080
+I am taking detergent.
+
+5
+00:00:35,400 --> 00:00:37,560
+I am opening the detergent.
+
+6
+00:00:41,640 --> 00:00:43,800
+I am pouring the detergent.
+
+7
+00:00:47,420 --> 00:00:51,800
+I am closing the detergent.
+
+8
+00:00:54,380 --> 00:00:58,100
+I am putting the detergent back.
+
+9
+00:01:01,000 --> 00:01:02,640
+I am closing the cupboard.
+
+10
+00:01:07,320 --> 00:01:10,040
+I am closing the washer.
+
+11
+00:01:14,180 --> 00:01:20,240
+I am turning on the washer.
