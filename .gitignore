@@ -7,8 +7,16 @@ assets/processed/frames/
 assets/processed/tracked/
 assets/processed/annotated/
 assets/processed/segmented/
+assets/processed/subtitled/
 **/.DS_Store
 .DS_Store
 pipeline/__pycache__/
 __pycache__/
 *.pyc
+assets/processed/holistic_test/
+assets/processed/sam3_test/
+assets/processed/hand_pose/
+assets/processed/narrations/
+assets/processed/annotations/
+yolov8s-pose.pt
+transcribe_videos.py
