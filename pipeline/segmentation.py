@@ -19,6 +19,7 @@ Usage:
 import sys
 import json
 import time
+import argparse
 from pathlib import Path
 
 import cv2
@@ -158,7 +159,7 @@ def segment_frame(predictor, frame_bgr, frame_h, frame_w):
 
 # ── Main pipeline ─────────────────────────────────────────────────────────────
 
-def process_video(video_path_str: str):
+def process_video(video_path_str: str, output_video: bool = False):
     video_path = Path(video_path_str)
     if not video_path.exists():
         print(f"[ERROR] Video not found: {video_path}")
@@ -294,13 +295,43 @@ def process_video(video_path_str: str):
     print(f"  Output saved to      : {segmented_dir}/")
     print(f"{'─' * 60}\n")
 
+    # ── Optional: stitch frames into annotated video ──────────
+    if output_video:
+        out_path = Path("assets/processed") / f"{clip_name}_annotated.mp4"
+        png_files = sorted(segmented_dir.glob("frame_*.png"))
+        if png_files:
+            sample = cv2.imread(str(png_files[0]))
+            h, w   = sample.shape[:2]
+            writer = cv2.VideoWriter(
+                str(out_path),
+                cv2.VideoWriter_fourcc(*"mp4v"),
+                fps,
+                (w, h),
+            )
+            print(f"  Stitching {len(png_files)} frames into video ...")
+            for p in png_files:
+                writer.write(cv2.imread(str(p)))
+            writer.release()
+            print(f"  Saved → {out_path}")
+
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage  : python pipeline/segmentation.py <path_to_video>")
-        print("Example: python pipeline/segmentation.py assets/videos/WashingCup.mp4")
-        sys.exit(1)
+    import argparse
 
-    process_video(sys.argv[1])
+    parser = argparse.ArgumentParser(
+        description='SAM3 Arm Segmentation Pipeline'
+    )
+    parser.add_argument(
+        'video',
+        help='Path to input video file'
+    )
+    parser.add_argument(
+        '--output-video',
+        action='store_true',
+        help='Stitch segmented frames into annotated video'
+    )
+    args = parser.parse_args()
+
+    process_video(args.video, output_video=args.output_video)
