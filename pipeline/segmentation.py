@@ -49,8 +49,8 @@ PROCESS_EVERY_N = 9   # run SAM3 on every 9th frame; copy result to frames in be
 # ── Model loader ──────────────────────────────────────────────────────────────
 
 def load_sam3() -> Sam3Predictor:
-    print("  [model] Loading SAM3 8-bit (mlx-community/sam3-8bit) ...")
-    model_path = get_model_path("mlx-community/sam3-8bit")
+    print("  [model] Loading SAM3 8-bit (mlx-community/sam3-4bit) ...")
+    model_path = get_model_path("mlx-community/sam3-4bit")
     model      = load_model(model_path)
     processor  = Sam3Processor.from_pretrained(str(model_path))
     predictor  = Sam3Predictor(model, processor, score_threshold=0.3)
