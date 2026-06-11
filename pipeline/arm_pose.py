@@ -4,16 +4,18 @@ arm_pose.py
 Combined hand + arm tracking for egocentric (head-mounted) video.
 
   • MediaPipe HandLandmarker  — 21-point hand skeleton (red = left, blue = right)
-  • YOLOv8 pose              — wrist → elbow arm segment (green)
+  • YOLOv8 pose              — wrist → elbow arm segment (red = left, blue = right)
+
+Stability features:
+  • EMA smoothing            — exponential moving average on YOLO keypoint positions
+  • Temporal buffer          — holds last known position for up to HOLD_FRAMES frames
+                               when a keypoint disappears, preventing flickering
 
 YOLO keypoints used (COCO format):
   7  = left  elbow
   8  = right elbow
   9  = left  wrist
   10 = right wrist
-
-Only the highest-confidence YOLO detection is used per frame.
-Keypoints at (0, 0) are treated as invisible and skipped.
 
 Usage:
   Test (saves 5 sample frames):
@@ -28,8 +30,6 @@ Usage:
   From video + save output video:
     python pipeline/arm_pose.py assets/videos/WashingCup.mp4 --output-video
 """
-
-# ── Imports ───────────────────────────────────────────────────────────────────
 
 import sys
 import json
@@ -47,31 +47,29 @@ from ultralytics import YOLO
 # ── Config ────────────────────────────────────────────────────────────────────
 
 MEDIAPIPE_MODEL = Path("assets/models/hand_landmarker.task")
-YOLO_MODEL      = "yolov8n-pose.pt"   # downloaded automatically if missing
+YOLO_MODEL      = "yolov8n-pose.pt"
 
 ANNOTATED_ROOT  = Path("assets/processed/annotated")
 ARM_POSE_ROOT   = Path("assets/processed/arm_pose")
 
-# Test mode
 TEST_FRAMES_DIR = Path("assets/processed/frames/Cutting Banana")
 TEST_VIDEO      = Path("assets/videos/Cutting Banana.mp4")
 TEST_OUTPUT_DIR = Path("assets/processed/arm_pose_test")
 TEST_MAX_FRAMES = 100
 TEST_SAVE_AT    = [1, 25, 50, 75, 100]
 
-# Drawing — matched to hand_pose.py scale (4K footage)
 DOT_RADIUS  = 18
 DOT_INNER   = 8
 BONE_WIDTH  = 5
 
-# Colors (BGR)
-COLOR_LEFT   = (50,  50,  230)    # red   — MediaPipe left hand
-COLOR_RIGHT  = (230, 80,  50 )    # blue  — MediaPipe right hand
-COLOR_ARM_LEFT  = (230, 80,  50 )    # blue — YOLO left arm (mirrored)
-COLOR_ARM_RIGHT = (50,  50,  230)    # red  — YOLO right arm (mirrored)
-COLOR_WHITE  = (255, 255, 255)    # white dot centers
+COLOR_LEFT      = (50,  50,  230)
+COLOR_RIGHT     = (230, 80,  50 )
+COLOR_WHITE     = (255, 255, 255)
 
-# MediaPipe hand connections (21 landmarks)
+# Smoothing
+EMA_ALPHA   = 0.4   # lower = smoother but more lag
+HOLD_FRAMES = 5     # frames to hold last position when keypoint disappears
+
 HAND_CONNECTIONS = [
     (0,1),(1,2),(2,3),(3,4),
     (0,5),(5,6),(6,7),(7,8),
@@ -89,25 +87,53 @@ LANDMARK_NAMES = [
     "PINKY_MCP","PINKY_PIP","PINKY_DIP","PINKY_TIP",
 ]
 
-# YOLO COCO keypoint indices we care about
 YOLO_LEFT_ELBOW  = 7
 YOLO_RIGHT_ELBOW = 8
 YOLO_LEFT_WRIST  = 9
 YOLO_RIGHT_WRIST = 10
 
 
+# ── Smoother ──────────────────────────────────────────────────────────────────
+
+class KeypointSmoother:
+    """EMA smoothing + temporal buffer for stable keypoint tracking."""
+
+    def __init__(self, alpha=EMA_ALPHA, hold_frames=HOLD_FRAMES):
+        self.alpha       = alpha
+        self.hold_frames = hold_frames
+        self._smoothed   = {}
+        self._missing    = {}
+
+    def update(self, key, pt):
+        if pt is not None:
+            self._missing[key] = 0
+            if key not in self._smoothed:
+                self._smoothed[key] = (float(pt[0]), float(pt[1]))
+            else:
+                sx, sy = self._smoothed[key]
+                nx, ny = float(pt[0]), float(pt[1])
+                self._smoothed[key] = (
+                    self.alpha * nx + (1 - self.alpha) * sx,
+                    self.alpha * ny + (1 - self.alpha) * sy,
+                )
+        else:
+            self._missing[key] = self._missing.get(key, 0) + 1
+            if self._missing[key] > self.hold_frames:
+                self._smoothed.pop(key, None)
+                return None
+
+        if key in self._smoothed:
+            x, y = self._smoothed[key]
+            return (int(x), int(y))
+        return None
+
+
 # ── Model loaders ─────────────────────────────────────────────────────────────
 
 def load_mediapipe():
-    """Load MediaPipe HandLandmarker."""
     if not MEDIAPIPE_MODEL.exists():
         print(f"[ERROR] MediaPipe model not found: {MEDIAPIPE_MODEL}")
-        print("  Download with:")
-        print("  curl -L -o assets/models/hand_landmarker.task \\")
-        print("    https://storage.googleapis.com/mediapipe-models/hand_landmarker/"
-              "hand_landmarker/float16/latest/hand_landmarker.task")
         sys.exit(1)
-
     options = mp_vision.HandLandmarkerOptions(
         base_options=mp_tasks.BaseOptions(model_asset_path=str(MEDIAPIPE_MODEL)),
         num_hands=2,
@@ -120,83 +146,49 @@ def load_mediapipe():
 
 
 def load_yolo():
-    """Load YOLOv8 pose model."""
     return YOLO(YOLO_MODEL)
 
 
-# ── YOLO arm helpers ──────────────────────────────────────────────────────────
+# ── YOLO helpers ──────────────────────────────────────────────────────────────
 
 def is_valid_kp(pt):
-    """Return True if keypoint is not a zero/missing point."""
     return not (pt[0] < 1.0 and pt[1] < 1.0)
 
 
 def draw_arm_dot(img, pt, color):
-    """Draw a filled dot with white center at pt."""
-    cv2.circle(img, pt, DOT_RADIUS, color,       -1, cv2.LINE_AA)
+    cv2.circle(img, pt, DOT_RADIUS, color,      -1, cv2.LINE_AA)
     cv2.circle(img, pt, DOT_INNER,  COLOR_WHITE, -1, cv2.LINE_AA)
 
 
-def extract_arm_keypoints(yolo_results, width, height):
-    """
-    From YOLO results pick the highest-confidence detection and extract
-    wrist + elbow pixel coordinates.
-
-    Returns dict:
-      {
-        "left_wrist":  (x, y) or None,
-        "left_elbow":  (x, y) or None,
-        "right_wrist": (x, y) or None,
-        "right_elbow": (x, y) or None,
-      }
-    """
-    arm_kps = {
-        "left_wrist":  None,
-        "left_elbow":  None,
-        "right_wrist": None,
-        "right_elbow": None,
-    }
-
+def extract_raw_arm_keypoints(yolo_results):
+    raw = {"left_wrist": None, "left_elbow": None, "right_wrist": None, "right_elbow": None}
     best_result = yolo_results[0]
     if best_result.keypoints is None or len(best_result.keypoints.xy) == 0:
-        return arm_kps
-
-    # Pick the detection with the highest box confidence
+        return raw
     boxes = best_result.boxes
     if boxes is None or len(boxes.conf) == 0:
-        return arm_kps
-
+        return raw
     best_idx = int(boxes.conf.argmax())
-    kps = best_result.keypoints.xy[best_idx]   # shape [17, 2]
+    kps = best_result.keypoints.xy[best_idx]
 
-    def to_px(idx):
+    def to_pt(idx):
         pt = (float(kps[idx][0]), float(kps[idx][1]))
-        if is_valid_kp(pt):
-            return (int(pt[0]), int(pt[1]))
-        return None
+        return (int(pt[0]), int(pt[1])) if is_valid_kp(pt) else None
 
-    arm_kps["left_wrist"]  = to_px(YOLO_LEFT_WRIST)
-    arm_kps["left_elbow"]  = to_px(YOLO_LEFT_ELBOW)
-    arm_kps["right_wrist"] = to_px(YOLO_RIGHT_WRIST)
-    arm_kps["right_elbow"] = to_px(YOLO_RIGHT_ELBOW)
-
-    return arm_kps
+    raw["left_wrist"]  = to_pt(YOLO_LEFT_WRIST)
+    raw["left_elbow"]  = to_pt(YOLO_LEFT_ELBOW)
+    raw["right_wrist"] = to_pt(YOLO_RIGHT_WRIST)
+    raw["right_elbow"] = to_pt(YOLO_RIGHT_ELBOW)
+    return raw
 
 
 def draw_arm_segments(img, arm_kps):
-    """
-    Draw wrist→elbow lines and dots for both arms.
-    Only draws a segment if both endpoints are valid.
-    """
-    pairs = [
-        ("left_wrist",  "left_elbow",  COLOR_ARM_LEFT),
-        ("right_wrist", "right_elbow", COLOR_ARM_RIGHT),
-    ]
-
-    for wrist_key, elbow_key, color in pairs:
+    for wrist_key, elbow_key, color in [
+        ("left_wrist",  "left_elbow",  COLOR_LEFT),
+        ("right_wrist", "right_elbow", COLOR_RIGHT),
+    ]:
         w = arm_kps[wrist_key]
         e = arm_kps[elbow_key]
-
         if w is not None and e is not None:
             cv2.line(img, w, e, color, BONE_WIDTH, cv2.LINE_AA)
         if w is not None:
@@ -205,36 +197,23 @@ def draw_arm_segments(img, arm_kps):
             draw_arm_dot(img, e, color)
 
 
-# ── MediaPipe hand helpers ────────────────────────────────────────────────────
+# ── MediaPipe helpers ─────────────────────────────────────────────────────────
 
 def draw_hand_skeleton(img, result, width, height):
-    """
-    Draw 21-point hand skeletons from MediaPipe result.
-    Returns list of wrist data dicts for JSON.
-    """
     wrist_data = []
-
     for landmarks, handedness in zip(result.hand_landmarks, result.handedness):
         label      = handedness[0].category_name
         confidence = round(handedness[0].score, 4)
         color      = COLOR_LEFT if label == "Left" else COLOR_RIGHT
         side       = "L" if label == "Left" else "R"
+        pts        = [(int(lm.x * width), int(lm.y * height)) for lm in landmarks]
 
-        pts = [
-            (int(lm.x * width), int(lm.y * height))
-            for lm in landmarks
-        ]
-
-        # Bone lines
         for a, b in HAND_CONNECTIONS:
             cv2.line(img, pts[a], pts[b], color, BONE_WIDTH, cv2.LINE_AA)
-
-        # Joint dots
         for px, py in pts:
             cv2.circle(img, (px, py), DOT_RADIUS, color,       -1, cv2.LINE_AA)
             cv2.circle(img, (px, py), DOT_INNER,  COLOR_WHITE, -1, cv2.LINE_AA)
 
-        # L / R label at wrist
         wx, wy = pts[0]
         lx, ly = wx + DOT_RADIUS + 10, wy + 14
         for dx, dy in [(-3,-3),(-3,3),(3,-3),(3,3)]:
@@ -243,65 +222,49 @@ def draw_hand_skeleton(img, result, width, height):
         cv2.putText(img, side, (lx, ly),
                     cv2.FONT_HERSHEY_DUPLEX, 1.8, color, 2, cv2.LINE_AA)
 
-        # Collect keypoints for JSON
         keypoints = {}
         for i, (lm, (px, py)) in enumerate(zip(landmarks, pts)):
             keypoints[LANDMARK_NAMES[i]] = {
                 "px": px, "py": py,
-                "x":  round(lm.x, 6),
-                "y":  round(lm.y, 6),
-                "z":  round(lm.z, 6),
+                "x": round(lm.x, 6), "y": round(lm.y, 6), "z": round(lm.z, 6),
             }
-
         wrist_data.append({
-            "label":      label,
-            "confidence": confidence,
-            "px":         pts[0][0],
-            "py":         pts[0][1],
-            "keypoints":  keypoints,
+            "label": label, "confidence": confidence,
+            "px": pts[0][0], "py": pts[0][1], "keypoints": keypoints,
         })
-
     return wrist_data
 
 
 # ── Core: process one frame ───────────────────────────────────────────────────
 
-def process_frame(mp_detector, yolo_model, frame: np.ndarray, width: int, height: int) -> tuple:
-    """
-    Run both MediaPipe and YOLO on one frame.
+def process_frame(mp_detector, yolo_model, smoother, frame, width, height):
+    annotated  = frame.copy()
 
-    Returns:
-      annotated  — BGR image with hand skeleton + arm segments drawn
-      frame_data — dict with wrist_data (MediaPipe) and arm_keypoints (YOLO)
-    """
-    annotated = frame.copy()
-
-    # ── MediaPipe hands ────────────────────────────────────────────────────
-    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    mp_image  = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
-    mp_result = mp_detector.detect(mp_image)
+    # MediaPipe
+    frame_rgb  = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    mp_image   = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
+    mp_result  = mp_detector.detect(mp_image)
     wrist_data = draw_hand_skeleton(annotated, mp_result, width, height)
 
-    # ── YOLO arms ──────────────────────────────────────────────────────────
+    # YOLO + smoothing
     yolo_results = yolo_model(frame, verbose=False)
-    arm_kps      = extract_arm_keypoints(yolo_results, width, height)
+    raw_kps      = extract_raw_arm_keypoints(yolo_results)
+    arm_kps = {
+        "left_wrist":  smoother.update("left_wrist",  raw_kps["left_wrist"]),
+        "left_elbow":  smoother.update("left_elbow",  raw_kps["left_elbow"]),
+        "right_wrist": smoother.update("right_wrist", raw_kps["right_wrist"]),
+        "right_elbow": smoother.update("right_elbow", raw_kps["right_elbow"]),
+    }
     draw_arm_segments(annotated, arm_kps)
 
-    # Serialise arm keypoints for JSON (None → null)
     def pt_to_dict(pt):
         return {"px": pt[0], "py": pt[1]} if pt is not None else None
 
     frame_data = {
-        "hands_found":  len(wrist_data),
-        "wrists":       wrist_data,
-        "arm_keypoints": {
-            "left_wrist":  pt_to_dict(arm_kps["left_wrist"]),
-            "left_elbow":  pt_to_dict(arm_kps["left_elbow"]),
-            "right_wrist": pt_to_dict(arm_kps["right_wrist"]),
-            "right_elbow": pt_to_dict(arm_kps["right_elbow"]),
-        },
+        "hands_found":   len(wrist_data),
+        "wrists":        wrist_data,
+        "arm_keypoints": {k: pt_to_dict(v) for k, v in arm_kps.items()},
     }
-
     return annotated, frame_data
 
 
@@ -309,13 +272,14 @@ def process_frame(mp_detector, yolo_model, frame: np.ndarray, width: int, height
 
 def run_test():
     print(f"\n{'=' * 60}")
-    print(f"  Arm + Hand Tracking  —  TEST MODE")
-    print(f"  Frames : first {TEST_MAX_FRAMES}  |  Saving : {TEST_SAVE_AT}")
+    print(f"  Arm + Hand Tracking  —  TEST MODE  (with smoothing)")
+    print(f"  EMA alpha={EMA_ALPHA}  |  Hold frames={HOLD_FRAMES}")
     print(f"{'=' * 60}\n")
 
     TEST_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     mp_detector = load_mediapipe()
     yolo_model  = load_yolo()
+    smoother    = KeypointSmoother()
 
     if TEST_FRAMES_DIR.exists():
         frame_files = sorted(
@@ -354,9 +318,8 @@ def run_test():
     for frame_id, frame in frames():
         if height == 0:
             height, width = frame.shape[:2]
-
         display  = frame_id + 1
-        annotated, fdata = process_frame(mp_detector, yolo_model, frame, width, height)
+        annotated, fdata = process_frame(mp_detector, yolo_model, smoother, frame, width, height)
 
         if display in TEST_SAVE_AT:
             for dx, dy in [(-2,-2),(-2,2),(2,-2),(2,2)]:
@@ -364,10 +327,8 @@ def run_test():
                             cv2.FONT_HERSHEY_DUPLEX, 2.0, (0,0,0), 6, cv2.LINE_AA)
             cv2.putText(annotated, f"Frame {display}", (30, 70),
                         cv2.FONT_HERSHEY_DUPLEX, 2.0, (255,255,255), 3, cv2.LINE_AA)
-
             out = TEST_OUTPUT_DIR / f"frame_{str(display).zfill(3)}.png"
             cv2.imwrite(str(out), annotated)
-
             ak = fdata["arm_keypoints"]
             print(f"  Frame {display:>3}  →  {out.name}")
             print(f"          Hands (MediaPipe) : {fdata['hands_found']}")
@@ -388,7 +349,6 @@ def process_frames_folder(frames_dir: str, fps: float = 29.97):
         list(frames_dir.glob("frame_*.jpg")) +
         list(frames_dir.glob("frame_*.png"))
     )
-
     if not frame_files:
         print(f"[ERROR] No frames in {frames_dir}")
         sys.exit(1)
@@ -398,8 +358,7 @@ def process_frames_folder(frames_dir: str, fps: float = 29.97):
     total_frames  = len(frame_files)
 
     print(f"\n{'=' * 60}")
-    print(f"  Arm + Hand Tracking  (from frames)")
-    print(f"  Clip   : {clip_name}  |  {width}x{height}  |  {total_frames} frames")
+    print(f"  Arm + Hand Tracking  (from frames)  |  {clip_name}  |  {total_frames} frames")
     print(f"{'=' * 60}\n")
 
     annotated_dir = ANNOTATED_ROOT / clip_name
@@ -408,31 +367,22 @@ def process_frames_folder(frames_dir: str, fps: float = 29.97):
 
     mp_detector = load_mediapipe()
     yolo_model  = load_yolo()
+    smoother    = KeypointSmoother()
 
-    all_frames  = []
-    frame_id    = 0
-    start_time  = time.time()
+    all_frames = []
+    frame_id   = 0
+    start_time = time.time()
 
     for frame_file in frame_files:
         frame = cv2.imread(str(frame_file))
         if frame is None:
             frame_id += 1
             continue
-
-        annotated, fdata = process_frame(mp_detector, yolo_model, frame, width, height)
+        annotated, fdata = process_frame(mp_detector, yolo_model, smoother, frame, width, height)
         cv2.imwrite(str(annotated_dir / f"frame_{str(frame_id).zfill(6)}.png"), annotated)
-
-        all_frames.append({
-            "frame_id":      frame_id,
-            "timestamp_sec": round(frame_id / fps, 4),
-            **fdata,
-        })
-
+        all_frames.append({"frame_id": frame_id, "timestamp_sec": round(frame_id / fps, 4), **fdata})
         if frame_id % 100 == 0:
-            elapsed = time.time() - start_time
-            pct     = frame_id / total_frames * 100
-            print(f"  Frame {frame_id:>6} / {total_frames}  ({pct:5.1f}%)  |  {elapsed:.1f}s")
-
+            print(f"  Frame {frame_id:>6} / {total_frames}  ({frame_id/total_frames*100:5.1f}%)  |  {time.time()-start_time:.1f}s")
         frame_id += 1
 
     mp_detector.close()
@@ -466,6 +416,7 @@ def process_video(video_path: str, output_video: bool = False):
 
     mp_detector = load_mediapipe()
     yolo_model  = load_yolo()
+    smoother    = KeypointSmoother()
 
     all_frames = []
     frame_id   = 0
@@ -475,26 +426,15 @@ def process_video(video_path: str, output_video: bool = False):
         ret, frame = cap.read()
         if not ret:
             break
-
-        annotated, fdata = process_frame(mp_detector, yolo_model, frame, width, height)
+        annotated, fdata = process_frame(mp_detector, yolo_model, smoother, frame, width, height)
         cv2.imwrite(str(annotated_dir / f"frame_{str(frame_id).zfill(6)}.png"), annotated)
-
-        all_frames.append({
-            "frame_id":      frame_id,
-            "timestamp_sec": round(frame_id / fps, 4),
-            **fdata,
-        })
-
+        all_frames.append({"frame_id": frame_id, "timestamp_sec": round(frame_id / fps, 4), **fdata})
         if frame_id % 100 == 0:
-            elapsed = time.time() - start_time
-            pct     = frame_id / total_frames * 100
-            print(f"  Frame {frame_id:>6} / {total_frames}  ({pct:5.1f}%)  |  {elapsed:.1f}s")
-
+            print(f"  Frame {frame_id:>6} / {total_frames}  ({frame_id/total_frames*100:5.1f}%)  |  {time.time()-start_time:.1f}s")
         frame_id += 1
 
     cap.release()
     mp_detector.close()
-
     _save_json(clip_name, frame_id, fps, width, height, all_frames)
     _print_summary(clip_name, frame_id, time.time() - start_time, annotated_dir)
 
@@ -508,36 +448,25 @@ def _save_json(clip_name, total_frames, fps, width, height, frames_data):
     json_path = ARM_POSE_ROOT / f"{clip_name}.json"
     with open(json_path, "w") as f:
         json.dump({
-            "clip_name":    clip_name,
-            "total_frames": total_frames,
-            "fps":          fps,
-            "resolution":   {"width": width, "height": height},
-            "frames":       frames_data,
+            "clip_name": clip_name, "total_frames": total_frames,
+            "fps": fps, "resolution": {"width": width, "height": height},
+            "smoothing": {"ema_alpha": EMA_ALPHA, "hold_frames": HOLD_FRAMES},
+            "frames": frames_data,
         }, f, indent=2)
     print(f"  JSON → {json_path}")
 
 
 def _print_summary(clip_name, total_frames, elapsed, annotated_dir):
-    print(f"\n{'─' * 60}")
-    print(f"  DONE  —  {clip_name}")
-    print(f"{'─' * 60}")
-    print(f"  Total frames : {total_frames:,}")
-    print(f"  Time         : {elapsed/60:.1f} min")
+    print(f"\n  DONE  —  {clip_name}  |  {total_frames:,} frames  |  {elapsed/60:.1f} min")
     print(f"  Frames → {annotated_dir}/\n")
 
 
 def _stitch_video(annotated_dir, clip_name, fps, width, height):
     png_files = sorted(annotated_dir.glob("frame_*.png"))
     if not png_files:
-        print("  [warn] No frames to stitch.")
         return
     out_path = Path("assets/processed") / f"{clip_name}_arm_pose.mp4"
-    writer   = cv2.VideoWriter(
-        str(out_path),
-        cv2.VideoWriter_fourcc(*"mp4v"),
-        fps,
-        (width, height),
-    )
+    writer   = cv2.VideoWriter(str(out_path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height))
     print("  Stitching frames into video...")
     for p in png_files:
         writer.write(cv2.imread(str(p)))
@@ -548,23 +477,19 @@ def _stitch_video(annotated_dir, clip_name, fps, width, height):
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-
     output_video = "--output-video" in sys.argv
     clean_argv   = [a for a in sys.argv if a != "--output-video"]
 
     if "--test" in clean_argv:
         run_test()
-
     elif "--frames" in clean_argv:
         idx = clean_argv.index("--frames")
         if idx + 1 >= len(clean_argv):
             print("Usage: python pipeline/arm_pose.py --frames <folder>")
             sys.exit(1)
         process_frames_folder(clean_argv[idx + 1])
-
     elif len(clean_argv) == 2:
         process_video(clean_argv[1], output_video=output_video)
-
     else:
         print("Usage:")
         print("  Test   : python pipeline/arm_pose.py --test")
