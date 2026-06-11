@@ -19,6 +19,14 @@ assets/processed/hand_pose/
 assets/processed/narrations/
 assets/processed/annotations/
 yolov8s-pose.pt
+yolov8n-pose.pt
 transcribe_videos.py
 assets/models/holistic_landmarker.task
 assets/models/sam2_hiera_tiny.pt
+assets/models/sam3-4bit/
+assets/processed/arm_pose/
+assets/processed/arm_pose_test/
+assets/processed/*.mp4
+assets/videos/*.jpg
+pose_debug.jpg
+pose_output.png
