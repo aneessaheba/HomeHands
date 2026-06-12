@@ -5,7 +5,10 @@ native home environments. Using head-mounted and body-worn cameras, we record
 unscripted interactions across the entire home — kitchen, laundry, living spaces —
 annotated with hand pose, segmentation, and action labels.
 
-![sample clip](assets/preview.gif)
+| | | |
+|---|---|---|
+| ![washing a cup](assets/grid/washing_cup.gif)<br>washing a cup | ![cutting a banana](assets/grid/cutting_banana.gif)<br>cutting a banana | ![folding clothes](assets/grid/folding_clothes.gif)<br>folding clothes |
+| ![making tea](assets/grid/making_tea.gif)<br>making tea | ![mopping](assets/grid/mopping.gif)<br>mopping | ![arranging shoes](assets/grid/arranging_shoes.gif)<br>arranging shoes |
 
 ## HomeHands-50
 
